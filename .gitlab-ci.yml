@@ -25,3 +25,6 @@ build-package:
     - pip install dist/myrunner-0.1.1-py3-none-any.whl
     - echo "Test package"
     - myrunner test
+  artifacts:
+    paths:
+      - dist/myrunner-0.1.1-py3-none-any.whl
