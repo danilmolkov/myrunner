@@ -9,6 +9,13 @@ unit-test:
     - pip install -r requirements.txt
     - python3 -m unittest discover
 
+lint:
+  stage: test
+  image: python:3.10
+  script:
+    - pin install flake8
+    - flake8
+
 build-package:
   stage: build
   image: python:3.10
@@ -17,4 +24,4 @@ build-package:
     - python -m build
     - pip install dist/myrunner-0.0.1-py3-none-any.whl
     - echo "Test package"
-    - python -m myrunner.myrunner test
+    - myrunner test

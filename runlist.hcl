@@ -1,3 +1,8 @@
+run "clear" {
+    description = "clean build dir"
+    execute = "rm -rf dist"
+}
+
 run "test" {
     description = "test"
     execute = "python3 -m unittest discover"
@@ -15,5 +20,5 @@ run "build" {
 
 run "install" {
     description = "install myrunner package on the host"
-    execute = "python3 -m pip install dist/myrunner-0.0.1-py3-none-any.whl --force-reinstall"
+    execute = "python3 -m pip install dist/myrunner-0.1.1-py3-none-any.whl --force-reinstall"
 }

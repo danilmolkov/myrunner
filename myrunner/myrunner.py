@@ -36,7 +36,7 @@ def executeRun(runs: dict, run: str):
              0 if run is found
     """
     if run not in runs:
-        logging.error(f'run {run} is not found')
+        logging.error(f'run \'{run}\' is not found')
         return -1
     return executionEngine.execute(runs[run]['execute'])
 

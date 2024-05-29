@@ -12,7 +12,7 @@ run_schema = {
         "description": {"type": "string"},
         "execute": {"type": "string"},
     },
-    "required": ["description", "execute"],
+    "required": ["execute"],
     "additionalProperties": False
 }
 
