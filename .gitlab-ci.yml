@@ -13,7 +13,7 @@ lint:
   stage: test
   image: python:3.10
   script:
-    - pin install flake8
+    - pip install flake8
     - flake8
 
 build-package:
