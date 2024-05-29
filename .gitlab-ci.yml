@@ -22,9 +22,9 @@ build-package:
   script:
     - pip install build
     - python -m build
-    - pip install dist/myrunner-0.2.0-py3-none-any.whl
+    - pip install dist/myrunner-*-py3-none-any.whl
     - echo "Test package"
     - myrunner test
   artifacts:
     paths:
-      - dist/myrunner-0.2.0-py3-none-any.whl
+      - dist/myrunner-*-py3-none-any.whl

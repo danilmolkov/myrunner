@@ -20,5 +20,5 @@ run "build" {
 
 run "install" {
     description = "install myrunner package on the host"
-    execute = "python3 -m pip install dist/myrunner-0.2.0-py3-none-any.whl --force-reinstall"
+    execute = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
 }
