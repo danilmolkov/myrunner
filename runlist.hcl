@@ -3,6 +3,11 @@ run "test" {
     execute = "python3 -m unittest discover"
 }
 
+run "lint" {
+    description = "run flake8 linter"
+    execute = "flake8"
+}
+
 run "build" {
     description = "build myrunner"
     execute = "python3 -m build"

@@ -31,5 +31,5 @@ def readRuns(file: str) -> dict:
         try:
             validate(value, run_schema)
         except exceptions.ValidationError as err:
-            raise runnerExceptions.SchemaValiationError('test',err.message)
+            raise runnerExceptions.SchemaValiationError('test', err.message)
     return obj

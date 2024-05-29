@@ -1,14 +1,9 @@
-from unittest import runner
 import myrunner.myrunner as mr
 from myrunner.executionEngine import ExecutionEngine
-import myrunner.common.runnerExceptions  as runnerExceptions
-import jsonschema.exceptions
+import myrunner.common.runnerExceptions as runnerExceptions
 import unittest
 import os
 from io import StringIO
-
-import test
-
 
 class testMyRunner:
     def __init__(self, runnerName: str) -> None:
@@ -42,14 +37,14 @@ class executionTesting(unittest.TestCase):
             fileContent = f.read()
         self.assertEqual(fileContent.rstrip('\n'), result)
 
-
-
 class fileReadingTesting(unittest.TestCase):
     def __readRuns(self, path=''):
         mr.readRuns(path)
+
     def testRunListNotFound(self):
         self.assertRaises(runnerExceptions.FileNotFound,
                           self.__readRuns)
+
     def testInvalidRunnerReading(self):
         self.assertRaises(runnerExceptions.SchemaValiationError, self.__readRuns, path='./test/runners/invalid-rule-runner.hcl')
 
