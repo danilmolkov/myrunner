@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "myrunner"
 authors = [{ name = "Molkov Daniil", email = "molkovdanil@gmail.com" }]
 description = "Create declarative runs and run it easily!"
-version = "0.1.1"
+version = "0.2.0"
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = ["pygohcl", "jsonschema"]

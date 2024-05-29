@@ -7,7 +7,6 @@ from . import hclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
 
-
 DEFAULT_RUNLIST = 'runlist.hcl'
 
 def readRuns(file: str) -> dict:
@@ -44,17 +43,18 @@ def executeRun(runs: dict, run: str):
 def main():
     loggingSetup()
     args = argParser.parse()
-    logging.info("Starting")
     if args.describe:
         printrunsTable(args.file)
-        logging.info('Finished')
+        logging.info('Exiting')
         return 0
     runs = readRuns(args.file)
     for run in args.runs:
+        logging.info(f"Starting run: {run}")
         rc = executeRun(runs, run)
         if rc != 0:
+            logging.info('Exiting')
             exit(rc)
-    logging.info('Finished')
+    logging.info('Exiting')
     return 0
 
 
@@ -63,11 +63,9 @@ def loggingSetup():
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
-
 if __name__ == '__main__':
     try:
         main()
     except runnerExceptions.BaseMyRunnerException as err:
         logging.critical(err)
         exit(1)
-    #     print(f'EXCEPTION: {err}')
