@@ -1,3 +1,4 @@
+from unittest import runner
 import myrunner.myrunner as mr
 from myrunner.executionEngine import ExecutionEngine
 import myrunner.common.runnerExceptions  as runnerExceptions
@@ -44,11 +45,14 @@ class executionTesting(unittest.TestCase):
 
 
 class fileReadingTesting(unittest.TestCase):
+    def __readRuns(self, path=''):
+        mr.readRuns(path)
     def testRunListNotFound(self):
-        def readRuns():
-            mr.readRuns(f'')
         self.assertRaises(runnerExceptions.FileNotFound,
-                          readRuns)
+                          self.__readRuns)
+    def testInvalidRunnerReading(self):
+        self.assertRaises(runnerExceptions.SchemaValiationError, self.__readRuns, path='./test/runners/invalid-rule-runner.hcl')
+
 
 if __name__ == '__main__':
 

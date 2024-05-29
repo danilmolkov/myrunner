@@ -3,16 +3,16 @@ import os
 import logging
 import sys
 
-
+# TODO: Move everyting under class
 class ExecutionEngine:
     outputFd = sys.stdout
-
 
 def execute(command) -> int:
     """Run simple task
     """
     logging.info(f'Executing command: {command}')
     print()
+    # TODO: now output from process prints only after process finish. Fix it.
     with subprocess.Popen(args=command,
                           stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT, universal_newlines=True, executable='/bin/sh', cwd=os.getcwd(), pass_fds=()) as proc:
         # while proc.poll() is None:

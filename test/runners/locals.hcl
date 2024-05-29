@@ -1,4 +1,4 @@
-# Locals import.
+// TODO: Add locals feature support
 
 locals {
     test_string = "I am local"

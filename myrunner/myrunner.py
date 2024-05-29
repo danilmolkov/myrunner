@@ -6,7 +6,6 @@ from . import argParser
 from . import hclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
-from jsonschema import exceptions
 
 
 DEFAULT_RUNLIST = 'runlist.hcl'
@@ -43,6 +42,7 @@ def executeRun(runs: dict, run: str):
 
 
 def main():
+    loggingSetup()
     args = argParser.parse()
     logging.info("Starting")
     if args.describe:
@@ -66,9 +66,8 @@ def loggingSetup():
 
 if __name__ == '__main__':
     try:
-        loggingSetup()
         main()
     except runnerExceptions.BaseMyRunnerException as err:
         logging.critical(err)
+        exit(1)
     #     print(f'EXCEPTION: {err}')
-    #     sys.exit(1)

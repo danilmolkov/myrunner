@@ -28,5 +28,8 @@ def readRuns(file: str) -> dict:
     for key, value in obj.items():
         if '-' in key:
             logging.warn(f"using '-' is not suggested in run name: {key}")
-        validate(value, run_schema)
+        try:
+            validate(value, run_schema)
+        except exceptions.ValidationError as err:
+            raise runnerExceptions.SchemaValiationError('test',err.message)
     return obj
