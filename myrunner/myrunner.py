@@ -3,20 +3,22 @@ The executable of MyRunner application
 """
 import logging
 from . import argParser
-from . import hclReader
+from .hclReader import HclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
 
 DEFAULT_RUNLIST = 'runlist.hcl'
 
-def readRuns(file: str) -> dict:
-    return hclReader.readRuns(file)
+# TODO: refactor this
+def readRunner(file: str) -> dict:
+    hclReader = HclReader(file)
+    return hclReader.readRuns()
 
 
-def printrunsTable(file: str):
-    runs = readRuns(file)
+def printRunsTable(file: str):
+    runs = readRunner(file)
 
-    padding = len(max(runs, key=len)) + 5
+    padding = len(max(runs, key=len)) + 4
     format_string = "{:<" + str(padding) + "} {:<" + str(padding) + "}"
     print(format_string.format('Name', 'Description'))
     for key, value in runs.items():
@@ -37,17 +39,25 @@ def executeRun(runs: dict, run: str):
     if run not in runs:
         logging.error(f'run \'{run}\' is not found')
         return -1
-    return executionEngine.execute(runs[run]['execute'])
+    return executionEngine.execute(runs[run]['execute'], runs[run].get('envs', None))
 
 
 def main():
     loggingSetup()
     args = argParser.parse()
+    if args.version:
+        try:
+            from ._version import version as ver
+        except ModuleNotFoundError:
+            print('Developing')
+            return 0
+        print(ver)
+        return 0
     if args.describe:
-        printrunsTable(args.file)
+        printRunsTable(args.file)
         logging.info('Exiting')
         return 0
-    runs = readRuns(args.file)
+    runs = readRunner(args.file)
     for run in args.runs:
         logging.info(f"Starting run: {run}")
         rc = executeRun(runs, run)

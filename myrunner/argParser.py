@@ -15,4 +15,6 @@ def parse():
                         help='Show description about runs in --file for input runs (or for all if empty)')
     parser.add_argument('runs', metavar='run', nargs='*',
                         help='run to run', default=[])
+    parser.add_argument('-v', '--version', dest='version', action='store_true',
+                        help='print version of myrunner')
     return parser.parse_args()

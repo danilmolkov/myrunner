@@ -6,6 +6,6 @@ locals {
 
 run "string_import" {
     description = "import string from local and prints it"
-    execute = "echo 'Hello World!'"
+    execute = "echo ${local.test_string}"
 }
 

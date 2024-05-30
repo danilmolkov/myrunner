@@ -1,4 +1,4 @@
-# First runner. Basic functionality.
+# Basic functionality.
 
 run "first_run" {
     description = "prints hello world"
@@ -15,3 +15,17 @@ run "run_script" {
     execute = "bash ./test/scripts/runAndFail.sh"
 }
 
+run "heredoc_run" {
+    description = "verify that heridoc is running"
+    execute = <<EOT
+echo $(basename $(pwd))
+greeting="hello world!"
+echo $${greeting:6}
+x=1
+while [ $x -le 5 ]; do
+    echo -n $${x}
+    ((x=x+1))
+done
+echo
+EOT
+}
