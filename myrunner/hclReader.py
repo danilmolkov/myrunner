@@ -14,7 +14,6 @@ class HclReader:
         with open(path, 'r') as path:
             try:
                 self.obj = pygohcl.loads(path.read())['run']
-                print(self.obj)
             except KeyError:
                 raise exceptions.SchemaError('runs are missing')
 
