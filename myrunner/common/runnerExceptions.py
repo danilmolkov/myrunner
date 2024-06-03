@@ -10,7 +10,7 @@ class FileNotFound(BaseMyRunnerException):
 
     def __init__(self, filename='File'):
         self.filename = filename
-        self.message = f'runlist \'{filename}\' was not found.'
+        self.message = f'runsfile \'{filename}\' not found.'
         super().__init__(self.message)
 
 

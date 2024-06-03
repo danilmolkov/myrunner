@@ -10,6 +10,7 @@ DELIM = '========================='
 # TODO: Move everyting under class
 class ExecutionEngine:
     outputFd = sys.stdout
+    interactiveInput = False
 
     @staticmethod
     def collect(proc, output: Queue):
@@ -29,6 +30,36 @@ class ExecutionEngine:
             result[env['name']] = env['default']
         return result
 
+    @staticmethod
+    def askForCommandInput(command: str):
+        answer = input(f'Running {command}. Type \'yes\' to execute: ')
+        if answer in ['yes', '\'yes\'', '"yes"']:
+            return 0
+        return 1
+
+def disableOutput():
+    ExecutionEngine.outputFd = open(os.devnull, 'w')
+
+def collectLogsFromSubprocess(proc, output_queue, collector):
+    output = []
+    while True:
+        if proc.poll() is None:
+            try:
+                output.append(output_queue.get(timeout=0.001))
+            except Empty:
+                continue
+            log_subprocess(output[-1])
+        else:
+            # proc finished
+            collector.join()
+            while True:
+                try:
+                    output.append(output_queue.get(timeout=0.001))
+                except Empty:
+                    break
+                log_subprocess(output[-1])
+            break
+
 def log_subprocess(log: str):
     for line in log.splitlines():
         print(line, file=ExecutionEngine.outputFd)
@@ -40,7 +71,9 @@ def execute(command, envs) -> int:
     if '\n' in command:
         newline = '\n'
     logging.info(f'Executing command:{newline}{command}')
-    print(DELIM)
+    if ExecutionEngine.interactiveInput and ExecutionEngine.askForCommandInput(command):
+        return 1
+
     with subprocess.Popen(args=command,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           shell=True, universal_newlines=True,
@@ -51,25 +84,7 @@ def execute(command, envs) -> int:
                            args=(proc.stdout, output_queue),
                            name='collector', daemon=True)
         collector.start()
-        output = []
-        while True:
-            if proc.poll() is None:
-                try:
-                    output.append(output_queue.get(timeout=0.001))
-                except Empty:
-                    continue
-                log_subprocess(output[-1])
-            else:
-                # proc finished
-                collector.join()
-                while True:
-                    try:
-                        output.append(output_queue.get(timeout=0.001))
-                    except Empty:
-                        break
-                    log_subprocess(output[-1])
-                break
-        print(DELIM)
+        collectLogsFromSubprocess(proc, output_queue, collector)
         rc = proc.returncode
         if rc != 0:
             logging.error('Command failed!')

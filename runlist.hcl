@@ -1,3 +1,7 @@
+settings {
+    interactive = false
+}
+
 run "clear" {
     description = "clean build dir"
     execute = "rm -rf dist"
