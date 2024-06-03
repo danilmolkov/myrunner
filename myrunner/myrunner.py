@@ -41,8 +41,14 @@ def executeRun(runs: dict, run: str):
         return -1
     return executionEngine.execute(runs[run]['execute'], runs[run].get('envs', None))
 
-
 def main():
+    try:
+        start()
+    except runnerExceptions.BaseMyRunnerException as err:
+        logging.error(err)
+        exit(1)
+
+def start():
     loggingSetup()
     args = argParser.parse()
     if args.version:
@@ -75,8 +81,4 @@ def loggingSetup():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except runnerExceptions.BaseMyRunnerException as err:
-        logging.critical(err)
-        exit(1)
+    main()

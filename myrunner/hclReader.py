@@ -9,7 +9,7 @@ import myrunner.common.runnerExceptions as runnerExceptions
 class HclReader:
 
     def __init__(self, path: str) -> None:
-        if not os.path.exists(path):
+        if not os.path.exists(path) or os.path.isdir(path):
             raise runnerExceptions.FileNotFound(path)
         with open(path, 'r') as path:
             try:
