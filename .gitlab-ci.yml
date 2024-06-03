@@ -1,4 +1,5 @@
 stages:
+  - linting
   - test
   - build
 
@@ -10,11 +11,17 @@ unit-test:
     - python3 -m unittest discover
 
 lint:
-  stage: test
+  stage: linting
   image: python:3.10
   script:
     - pip install flake8
     - flake8
+
+markdownlint:
+  stage: linting
+  image: registry.gitlab.com/pipeline-components/markdownlint:latest
+  script:
+    - mdl --style all --warnings .
 
 build-package:
   stage: build
