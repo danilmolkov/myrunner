@@ -13,11 +13,12 @@ class HclReader:
             raise runnerExceptions.FileNotFound(path)
         with open(path, 'r') as path:
             try:
-                self.obj = pygohcl.loads(path.read())['run']
+                self.obj = pygohcl.loads(path.read())
+                self.obj['run']
             except KeyError:
                 raise exceptions.SchemaError('runs are missing')
 
-    run_schema = {
+    __run_schema = {
         "type": "object",
         "properties": {
             "description": {"type": "string"},
@@ -40,12 +41,12 @@ class HclReader:
         "additionalProperties": False
     }
 
-    def readRuns(self) -> dict:
-        for key, value in self.obj.items():
+    def getRuns(self) -> dict:
+        for key, value in self.obj['run'].items():
             if '-' in key:
                 logging.warn(f"using '-' is not suggested in run name: {key}")
             try:
-                validate(value, self.run_schema)
+                validate(value, self.__run_schema)
             except exceptions.ValidationError as err:
-                raise runnerExceptions.SchemaValiationError('test', err.message)
-        return self.obj
+                raise runnerExceptions.SchemaValiationError(key, err.message)
+        return self.obj['run']

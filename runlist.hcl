@@ -27,3 +27,9 @@ run "install" {
     description = "install myrunner package on the host"
     execute = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
 }
+
+
+run "all" {
+    description = "try to run Myrunner in Myrunner"
+    execute = "myrunner clear lint lint_md unit build install"
+}

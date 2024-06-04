@@ -9,20 +9,20 @@ import myrunner.common.runnerExceptions as runnerExceptions
 
 DEFAULT_RUNLIST = 'runlist.hcl'
 
-# TODO: refactor this
-def readRunner(file: str) -> dict:
-    hclReader = HclReader(file)
-    return hclReader.readRuns()
 
-
-def printRunsTable(file: str):
-    runs = readRunner(file)
-
+def printRunsTable(runs: dict, arg_runs: list):
     padding = len(max(runs, key=len)) + 4
     format_string = "{:<" + str(padding) + "} {:<" + str(padding) + "}"
     print(format_string.format('Name', 'Description'))
-    for key, value in runs.items():
-        print(format_string.format(key, value['description']))
+    if type(arg_runs) is list:
+        for run in arg_runs:
+            if run in runs.keys():
+                print(format_string.format(run, runs[run].get('description', '')))
+                # else:
+                # TODO: add no rule found raise
+    else:
+        for key, value in runs.items():
+            print(format_string.format(key, value.get('description', '')))
 
 
 def executeRun(runs: dict, run: str):
@@ -36,7 +36,7 @@ def executeRun(runs: dict, run: str):
         int: -1 if run not found
              0 if run is found
     """
-    if run not in runs:
+    if run not in runs.keys():
         logging.error(f'run \'{run}\' is not found')
         return -1
     return executionEngine.execute(runs[run]['execute'], runs[run].get('envs', None))
@@ -55,15 +55,16 @@ def start():
         try:
             from ._version import version as ver
         except ModuleNotFoundError:
-            print('Developing')
-            return 0
-        print(ver)
+            ver = 'Developing'
+            pass
+        print(f'Myrunner version {ver}')
         return 0
+    hclReader = HclReader(args.file)
+    runs = hclReader.getRuns()
     if args.describe:
-        printRunsTable(args.file)
+        printRunsTable(runs, args.runs)
         logging.info('Exiting')
         return 0
-    runs = readRunner(args.file)
     for run in args.runs:
         logging.info(f"Starting run: {run}")
         rc = executeRun(runs, run)
