@@ -23,7 +23,7 @@ To install Myrunner, clone this repository and install the required dependencies
 ```bash
 git clone https://github.com/danilmolkov/myrunner.git
 cd myrunner
-python3 -m build
+python -m pip install -r  requirements.txt
 ```
 
 To start:
@@ -35,6 +35,7 @@ python -m myrunner.myrunner
 To install Myrunner as package:
 
 ```bash
+python3 -m build
 VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)')
 python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall
 ```
