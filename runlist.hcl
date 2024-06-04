@@ -3,7 +3,7 @@ run "clear" {
     execute = "rm -rf dist"
 }
 
-run "test" {
+run "unit" {
     description = "test"
     execute = "python3 -m unittest discover"
 }

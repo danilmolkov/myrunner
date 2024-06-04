@@ -31,7 +31,11 @@ build-package:
     - python -m build
     - pip install dist/myrunner-*-py3-none-any.whl
     - echo "Test package"
-    - myrunner test
+    - myrunner unit
   artifacts:
     paths:
       - dist/myrunner-*-py3-none-any.whl
+  only:
+    - tags
+  except:
+    - branches
