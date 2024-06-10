@@ -48,3 +48,19 @@ upload-to-registry:
     - tags
   except:
     - branches
+
+upload-to-docker-registry:
+  image: docker:26.1.1
+  stage: push
+  services:
+    - docker:26.1.1-dind
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+  only:
+    - tags
+  except:
+    - branches
