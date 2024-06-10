@@ -19,6 +19,7 @@ class HclReader:
         "type": "object",
         "properties": {
             "interactive": {"type": "boolean"},
+            "description": {"type": "string"}
         },
         "additionalProperties": False
     }

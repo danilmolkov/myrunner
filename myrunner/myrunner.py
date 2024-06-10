@@ -2,24 +2,36 @@
 The executable of MyRunner application
 """
 import logging
+from posixpath import basename
 
 from . import argParser
 from .hclReader import HclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
 
-DEFAULT_RUNLIST = 'runlist.hcl'
 
-def printRunsTable(runs, cmdRuns):
+def printRunListDescribe(file: str, desc: str):
+    output = basename(file)
+    if desc:
+        output = output + ': ' + desc + '\n'
+    print(output)
+
+def printRunsTable(runs: dict, arg_runs: list):
     padding = len(max(runs, key=len)) + 4
     format_string = "{:<" + str(padding) + "} {:<" + str(padding) + "}"
-    for run in cmdRuns:
+    for run in arg_runs:
         if run not in runs:
             raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
     print(format_string.format('Name', 'Description'))
-    for key, value in runs.items():
-        if key in cmdRuns or len(cmdRuns) == 0:
-            print(format_string.format(key, value['description']))
+    if len(arg_runs) != 0:
+        for run in arg_runs:
+            if run in runs.keys():
+                print(format_string.format(run, runs[run].get('description', '')))
+                # else:
+                # TODO: add no rule found raise
+    else:
+        for key, value in runs.items():
+            print(format_string.format(key, value.get('description', '')))
 
 
 def executeRun(runs: dict, run: str):
@@ -62,7 +74,9 @@ def start():
     if args.quite_all:
         executionEngine.disableOutput()
     runs = hclReader.readRuns()
+    settings = hclReader.readSettings()
     if args.describe:
+        printRunListDescribe(args.file, settings.get('description', ''))
         printRunsTable(runs, args.runs)
         # logging.error(f'run \'{run}\' is not found')
         # return -1

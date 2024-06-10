@@ -1,4 +1,5 @@
 settings {
+    description = "runlist for myrunner"
     interactive = false
 }
 
@@ -32,11 +33,10 @@ run "install" {
     execute = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
 }
 
-run "build_docker" {
+run "docker" {
     description = "build docker image"
-    execute= "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); docker build . --build-arg VERSION=$${VERSION} --tag myrunner:$${VERSION}"
+    execute= "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); docker build . --build-arg VERSION=$${VERSION} --tag myrunner:$${VERSION%%+*}"
 }
-
 
 run "all" {
     description = "try to run Myrunner in Myrunner"

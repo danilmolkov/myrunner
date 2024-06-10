@@ -1,5 +1,4 @@
 import myrunner.myrunner as mr
-import myrunner.hclReader as hcl
 from myrunner.executionEngine import ExecutionEngine
 from myrunner.hclReader import HclReader
 import myrunner.common.runnerExceptions as runnerExceptions
@@ -10,7 +9,7 @@ from io import StringIO
 class testMyRunner:
     def __init__(self, runnerName: str) -> None:
         self.runners_path = f'{os.path.dirname(__file__)}/runners'
-        self.hcl = hcl.HclReader(f'{self.runners_path}/{runnerName}')
+        self.hcl = HclReader(f'{self.runners_path}/{runnerName}')
         self.runs = self.hcl.readRuns()
         self.setting = self.hcl.readSettings()
 
@@ -74,16 +73,11 @@ class executionTesting(unittest.TestCase):
         self.assertEqual(self.__getResult(), '')
 
 class fileReadingTesting(unittest.TestCase):
-<<<<<<< HEAD
-    def __readRunner(self, path=''):
-        HclReader(path).getRuns()
-=======
     def __readRuns(self, path=''):
-        hcl.HclReader(path).readRuns()
+        HclReader(path).readRuns()
 
     def __readSettings(self, path=''):
-        hcl.HclReader(path).readSettings()
->>>>>>> 1e022aa (Added settings feature)
+        HclReader(path).readSettings()
 
     def testRunListNotFound(self):
         self.assertRaises(runnerExceptions.FileNotFound,
