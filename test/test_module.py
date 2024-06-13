@@ -13,8 +13,8 @@ class testMyRunner:
         self.runs = self.hcl.readRuns()
         self.setting = self.hcl.readSettings()
 
-    def execute(self, runToRun: str) -> int:
-        return mr.executeRun(self.runs, runToRun)
+    def command(self, runToRun: str) -> int:
+        return mr.commandRun(self.runs, runToRun)
 
 
 # class TestModule(unittest.TestCase):
@@ -27,8 +27,8 @@ class executionTesting(unittest.TestCase):
     def tearDown(self):
         ExecutionEngine.outputFd.close()
 
-    def __execute(self, runner, run):
-        self.assertEqual(runner.execute(run), 0, 'return code is not successfull')
+    def __command(self, runner, run):
+        self.assertEqual(runner.command(run), 0, 'return code is not successfull')
 
     def __clearBuffer(self):
         ExecutionEngine.outputFd.truncate(0)
@@ -39,14 +39,14 @@ class executionTesting(unittest.TestCase):
 
     def testFirstRun(self):
         firstRunner = testMyRunner('test-runner.hcl')
-        self.__execute(firstRunner, 'first_run')
+        self.__command(firstRunner, 'first_run')
         result = self.__getResult()
         self.assertEqual(
             "Hello World!", result)
 
     def testMultilineString(self):
         firstRunner = testMyRunner('test-runner.hcl')
-        self.__execute(firstRunner, 'second_run')
+        self.__command(firstRunner, 'second_run')
         fileContent = ''
         with open('./test/misc/testFile.txt', 'r') as f:
             fileContent = f.read()
@@ -54,23 +54,32 @@ class executionTesting(unittest.TestCase):
 
     def testScriptInHeridoc(self):
         runner = testMyRunner('test-runner.hcl')
-        self.__execute(runner, 'heredoc_run')
+        self.__command(runner, 'heredoc_run')
         self.assertEqual(self.__getResult(), 'myrunner\nworld!\n12345')
 
     def testEnvironmentHandling(self):
         runner = testMyRunner('environment-vars.hcl')
         os.environ['TEST_1'] = 'Hello'  # test that this override default
         os.environ['TEST_3'] = 'I won\'t be printed to pass'  # test that not stated won't be provided
-        self.__execute(runner, 'print_env_vars')
+        self.__command(runner, 'print_env_vars')
         self.assertEqual(self.__getResult(), 'Hello world!')
         self.__clearBuffer()
         equal_string = 'I will be printed to pass'  # test that will be provided if envs not stated
         os.environ['TESTING_ENV'] = equal_string
-        self.__execute(runner, 'print_envs_if_not_stated')
+        self.__command(runner, 'print_envs_if_not_stated')
         self.assertEqual(self.__getResult(), equal_string)
         self.__clearBuffer()
-        self.__execute(runner, 'print_no_any_envs_except_system')
+        self.__command(runner, 'print_no_any_envs_except_system')
         self.assertEqual(self.__getResult(), '')
+
+    def testExecutableFeature(self):
+        runner = testMyRunner('test-runner.hcl')
+        self.__command(runner, 'python_run')
+        self.assertEqual(self.__getResult(), 'Combinations: [(1, 2), (1, 3), (2, 3)]\n'
+                                             'Original array for sorting: [1, 2, 1, 3, 2, 3]\n'
+                                             'Sorted array: [1, 1, 2, 2, 3, 3]')
+        self.__clearBuffer()
+
 
 class fileReadingTesting(unittest.TestCase):
     def __readRuns(self, path=''):

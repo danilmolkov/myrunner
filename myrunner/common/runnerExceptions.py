@@ -31,3 +31,13 @@ class OperationFailedError(BaseMyRunnerException):
         self.reason = reason
         self.message = f"{operation}: {reason}"
         super().__init__(self.message)
+
+
+class ExecutionAbort(BaseMyRunnerException):
+    """Raised when an operation fails"""
+
+    def __init__(self, execution, reason="Execution aborted"):
+        self.execution = execution
+        self.reason = reason
+        self.message = f"{execution} aborted: {reason}"
+        super().__init__(self.message)

@@ -5,40 +5,45 @@ settings {
 
 run "clear" {
     description = "clean build dir"
-    execute = "rm -rf dist"
+    command = "rm -rf dist"
 }
 
 run "unit" {
     description = "test"
-    execute = "python3 -m unittest discover"
+    command = "python3 -m unittest discover"
 }
 
 run "lint" {
     description = "run flake8 linter"
-    execute = "flake8"
+    command = "flake8"
 }
 
 run "lint_md" {
     description = "lint README using markdown lint docker"
-    execute = "docker run --rm -v $${PWD}:/lint pipelinecomponents/markdownlint mdl /lint --style all --warnings"
+    command = "docker run --rm -v $${PWD}:/lint pipelinecomponents/markdownlint mdl /lint --style all --warnings"
+}
+
+run "tf" {
+    command = "exit"
+    executable = ""
 }
 
 run "build" {
     description = "build myrunner"
-    execute = "python3 -m build"
+    command = "python3 -m build"
 }
 
 run "install" {
     description = "install myrunner package on the host"
-    execute = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
+    command = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
 }
 
 run "docker" {
     description = "build docker image"
-    execute= "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); docker build . --build-arg VERSION=$${VERSION} --tag myrunner:$${VERSION%%+*}"
+    command= "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); docker build . --build-arg VERSION=$${VERSION} --tag myrunner:$${VERSION%%+*}"
 }
 
 run "all" {
     description = "try to run Myrunner in Myrunner"
-    execute = "myrunner clear lint lint_md unit build install"
+    command = "myrunner clear lint lint_md unit build install"
 }

@@ -34,7 +34,7 @@ def printRunsTable(runs: dict, arg_runs: list):
             print(format_string.format(key, value.get('description', '')))
 
 
-def executeRun(runs: dict, run: str):
+def commandRun(runs: dict, run: str):
     """Perform run execution
 
     Args:
@@ -44,10 +44,12 @@ def executeRun(runs: dict, run: str):
     Returns:
         int: -1 if run not found
              0 if run is found
+    Raises:
+        runnerExceptions.SchemaValiationError if run is not found
     """
     if run not in runs:
         raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
-    return executionEngine.execute(runs[run]['execute'], runs[run].get('envs', None))
+    return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''))
 
 def main():
     try:
@@ -87,7 +89,7 @@ def start():
         logging.debug('interactive')
     for run in args.runs:
         logging.info(f"Starting run: {run}")
-        rc = executeRun(runs, run)
+        rc = commandRun(runs, run)
         if rc != 0:
             logging.error('Execution failed')
             exit(rc)

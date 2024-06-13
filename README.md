@@ -59,7 +59,7 @@ The main block which describes a command which will be executed
 ```hcl
 run "echo" {
     description = "Say hello"
-    execute = "echo $${MY_VAR}"
+    command = "echo $${MY_VAR}"
     envs = [ # if envs is missing or null, all envs will be provided, else only stated
         {
             name = "MY_VAR"

@@ -1,7 +1,7 @@
 # Envrionment variables feature
 run "print_env_vars" {
     description = "echoing envs"
-    execute = "echo $${TEST_1} $${TEST_2} $${TEST_3}"
+    command = "echo $${TEST_1} $${TEST_2} $${TEST_3}"
     envs = [ # if envs is missing or null, all envs will be provided, else only stated
         {
             name = "TEST_1"
@@ -16,12 +16,12 @@ run "print_env_vars" {
 
 run "print_envs_if_not_stated" {
     description = "echo some env if envs are not stated"
-    execute = "echo $${TESTING_ENV}"
+    command = "echo $${TESTING_ENV}"
     envs = null
 }
 
 run "print_no_any_envs_except_system" {
     description = "echo no any vars except system"
-    execute = "printenv | grep -v PWD | grep -v /usr/bin/printenv | grep -v SHLVL; echo # omit return code"
+    command = "printenv | grep -v PWD | grep -v /usr/bin/printenv | grep -v SHLVL; echo # omit return code"
     envs = []
 }

@@ -32,7 +32,7 @@ class ExecutionEngine:
 
     @staticmethod
     def askForCommandInput(command: str):
-        answer = input(f'Running {command}. Type \'yes\' to execute: ')
+        answer = input(f'Running {command}. Type \'yes\' to command: ')
         if answer in ['yes', '\'yes\'', '"yes"']:
             return 0
         return 1
@@ -64,7 +64,7 @@ def log_subprocess(log: str):
     for line in log.splitlines():
         print(line, file=ExecutionEngine.outputFd)
 
-def execute(command, envs) -> int:
+def command(command: str, envs, executable: str) -> int:
     """Run simple task
     """
     newline = ' '
@@ -77,7 +77,8 @@ def execute(command, envs) -> int:
     with subprocess.Popen(args=command,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           shell=True, universal_newlines=True,
-                          executable='/bin/bash', cwd=os.getcwd(), pass_fds=(),
+                          executable='/bin/bash' if executable == '' else executable,
+                          cwd=os.getcwd(), pass_fds=(),
                           env=ExecutionEngine.provideEnvs(envs)) as proc:
         output_queue = Queue()
         collector = Thread(target=ExecutionEngine.collect,
@@ -87,6 +88,6 @@ def execute(command, envs) -> int:
         collectLogsFromSubprocess(proc, output_queue, collector)
         rc = proc.returncode
         if rc != 0:
-            logging.error('Command failed!')
+            logging.error(f'Command failed! [{rc}]')
         logging.info('Command finished')
         return rc

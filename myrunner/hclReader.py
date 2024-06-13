@@ -28,7 +28,8 @@ class HclReader:
         "type": "object",
         "properties": {
             "description": {"type": "string"},
-            "execute": {"type": "string"},
+            "command": {"type": "string"},
+            "executable": {"type": "string"},
             "envs": {
                 "type": ["null", "array"],
                 "properties": {
@@ -43,7 +44,7 @@ class HclReader:
                 "additionalProperties": False
             }
         },
-        "required": ["execute"],
+        "required": ["command"],
         "additionalProperties": False
     }
 

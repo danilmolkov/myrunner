@@ -1,4 +1,4 @@
 run "first_run" {
     description = "prints hello world"
-    executer = "echo 'Hello World!'"
+    commandr = "echo 'Hello World!'"
 }

@@ -13,7 +13,7 @@ def parse():
     parser.add_argument('-d', '--describe', dest='describe', action='store_true',
                         help='Show description about runs in --file for input runs (or for all if empty)')
     parser.add_argument('runs', metavar='run', nargs='*',
-                        help='run to execute', default=[])
+                        help='run to command', default=[])
     parser.add_argument('-v', '--version', dest='version', action='store_true',
                         help='print version of myrunner')
     parser.add_argument('-q', '--quite', dest='quite', action='store_true', help='print only runs output')
