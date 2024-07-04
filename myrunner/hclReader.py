@@ -28,7 +28,7 @@ class HclReader:
         "type": "object",
         "properties": {
             "description": {"type": "string"},
-            "command": {"type": "string"},
+            "command": {"type": ["string", "array"]},
             "executable": {"type": "string"},
             "envs": {
                 "type": ["null", "array"],

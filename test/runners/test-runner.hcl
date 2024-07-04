@@ -55,3 +55,20 @@ if __name__ == "__main__":
     print("Sorted array:", sorted_combinations)
 EOT
 }
+
+run "command_array_type" {
+    description = "test command as array"
+    executable = "/usr/bin/python3"
+    command = [
+        "name='Billy'; print(f'Hi, my name is {name}')",
+        "name='Garry'; print(f'Hi, and my name is {name}')"
+    ]
+}
+
+run "command_array_type_failure" {
+    description = "test command as array. But first command failed so the second command is not executed"
+    command = [
+        "function fail_function() { echo \"I'm failing\"; return 1; }; fail_function",
+        "function success_function() { echo \"I shouldn't start\" }; success_function"
+    ]
+}

@@ -30,6 +30,9 @@ class executionTesting(unittest.TestCase):
     def __command(self, runner, run):
         self.assertEqual(runner.command(run), 0, 'return code is not successfull')
 
+    def __command_failed(self, runner, run):
+        self.assertNotEqual(runner.command(run), 0, 'return code is successfull')
+
     def __clearBuffer(self):
         ExecutionEngine.outputFd.truncate(0)
         ExecutionEngine.outputFd.seek(0)
@@ -79,6 +82,18 @@ class executionTesting(unittest.TestCase):
                                              'Original array for sorting: [1, 2, 1, 3, 2, 3]\n'
                                              'Sorted array: [1, 1, 2, 2, 3, 3]')
         self.__clearBuffer()
+
+    def testCommandAsArray(self):
+        runner = testMyRunner('test-runner.hcl')
+        self.__command(runner, 'command_array_type')
+        equal_string = 'Hi, my name is Billy\nHi, and my name is Garry'
+        self.assertEqual(self.__getResult(), equal_string)
+
+    def testCommandAsArrayFailure(self):
+        runner = testMyRunner('test-runner.hcl')
+        self.__command_failed(runner, 'command_array_type_failure')
+        equal_string = 'I\'m failing'
+        self.assertEqual(self.__getResult(), equal_string)
 
 
 class fileReadingTesting(unittest.TestCase):

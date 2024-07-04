@@ -32,7 +32,7 @@ class ExecutionEngine:
 
     @staticmethod
     def askForCommandInput(command: str):
-        answer = input(f'Running {command}. Type \'yes\' to command: ')
+        answer = input(f'Running {command}. Type \'yes\' to run: ')
         if answer in ['yes', '\'yes\'', '"yes"']:
             return 0
         return 1
@@ -40,7 +40,7 @@ class ExecutionEngine:
 def disableOutput():
     ExecutionEngine.outputFd = open(os.devnull, 'w')
 
-def collectLogsFromSubprocess(proc, output_queue, collector):
+def collectLogsFromSubprocess(proc, output_queue, collector) -> None:
     output = []
     while True:
         if proc.poll() is None:

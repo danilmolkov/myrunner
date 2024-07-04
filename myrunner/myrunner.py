@@ -21,14 +21,12 @@ def printRunsTable(runs: dict, arg_runs: list):
     format_string = "{:<" + str(padding) + "} {:<" + str(padding) + "}"
     for run in arg_runs:
         if run not in runs:
-            raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
+            raise runnerExceptions.SchemaValiationError(run, f'run is not found')
     print(format_string.format('Name', 'Description'))
     if len(arg_runs) != 0:
         for run in arg_runs:
             if run in runs.keys():
                 print(format_string.format(run, runs[run].get('description', '')))
-                # else:
-                # TODO: add no rule found raise
     else:
         for key, value in runs.items():
             print(format_string.format(key, value.get('description', '')))
@@ -49,7 +47,16 @@ def commandRun(runs: dict, run: str):
     """
     if run not in runs:
         raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
-    return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''))
+    if type(runs[run]['command']) == str:
+        return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''))
+    else:
+        rc = 0
+        for command in runs[run]['command']:
+            rc = executionEngine.command(command, runs[run].get('envs', None), runs[run].get('executable', ''))
+            if rc != 0:
+                return rc
+        return rc
+
 
 def main():
     try:
@@ -80,8 +87,6 @@ def start():
     if args.describe:
         printRunListDescribe(args.file, settings.get('description', ''))
         printRunsTable(runs, args.runs)
-        # logging.error(f'run \'{run}\' is not found')
-        # return -1
         logging.info('Exiting')
         return 0
     if args.interactive or runs_file_settings.get('interactive', False):
@@ -93,7 +98,6 @@ def start():
         if rc != 0:
             logging.error('Execution failed')
             exit(rc)
-    logging.info('Exiting')
     return 0
 
 
