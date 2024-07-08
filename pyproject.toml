@@ -15,5 +15,8 @@ dynamic = ['version']
 [tool.setuptools_scm]
 version_file = "myrunner/_version.py"
 
+[tool.setuptools.data-files]
+"myrunner/complete/bash" = ["myrunner/autocomplete/autocomplete.sh"]
+
 [project.scripts]
 myrunner = "myrunner.myrunner:main"

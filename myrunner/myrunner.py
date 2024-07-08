@@ -9,6 +9,7 @@ from .hclReader import HclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
 
+from sys import argv
 
 def printRunListDescribe(file: str, desc: str):
     output = basename(file)
@@ -21,7 +22,7 @@ def printRunsTable(runs: dict, arg_runs: list):
     format_string = "{:<" + str(padding) + "} {:<" + str(padding) + "}"
     for run in arg_runs:
         if run not in runs:
-            raise runnerExceptions.SchemaValiationError(run, f'run is not found')
+            raise runnerExceptions.SchemaValiationError(run, 'run is not found')
     print(format_string.format('Name', 'Description'))
     if len(arg_runs) != 0:
         for run in arg_runs:
@@ -47,7 +48,7 @@ def commandRun(runs: dict, run: str):
     """
     if run not in runs:
         raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
-    if type(runs[run]['command']) == str:
+    if type(runs[run]['command']) is str:
         return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''))
     else:
         rc = 0
@@ -57,8 +58,31 @@ def commandRun(runs: dict, run: str):
                 return rc
         return rc
 
+def getVersion():
+    try:
+        from ._version import version as ver
+    except ModuleNotFoundError:
+        ver = 'Developing'
+        pass
+    print(f'Myrunner version {ver}')
+
+def isComplete():
+    if argv[1] == '--complete':
+        try:
+            runs = HclReader(argv[2]).readRuns().keys()
+            print(" ".join(list(runs)))
+        except runnerExceptions.FileNotFound:
+            pass
+        exit(0)
+
+def printCompletionScript():
+    from os import path as ph
+    script_dir = ph.dirname(ph.abspath(__file__))
+    with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r') as f:
+        print(f.read())
 
 def main():
+    isComplete()
     try:
         start()
     except runnerExceptions.BaseMyRunnerException as err:
@@ -68,14 +92,11 @@ def main():
 def start():
     loggingSetup()
     args = argParser.parse()
+    if args.completion:
+        printCompletionScript()
     hclReader = HclReader(args.file)
     if args.version:
-        try:
-            from ._version import version as ver
-        except ModuleNotFoundError:
-            ver = 'Developing'
-            pass
-        print(f'Myrunner version {ver}')
+        getVersion()
         return 0
     runs_file_settings = hclReader.readSettings()
     if args.quite or args.quite_all:
@@ -99,7 +120,6 @@ def start():
             logging.error('Execution failed')
             exit(rc)
     return 0
-
 
 def loggingSetup():
     # note: critical is not used
