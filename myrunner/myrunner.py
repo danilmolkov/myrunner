@@ -33,7 +33,16 @@ def printRunsTable(runs: dict, arg_runs: list):
             print(format_string.format(key, value.get('description', '')))
 
 
-def commandRun(runs: dict, run: str):
+def handleImported(run: str, imports):
+    path = run.split('.', 1)
+    # sequence imported is currently not working
+    # importing imported is currently not working
+    if path[0] not in imports:
+        raise runnerExceptions.SchemaValiationError('test', f'import {path[0]} not found')
+    return commandRun(imports[path[0]], path[1], None)
+
+
+def commandRun(runs: dict, run: str, imports):
     """Perform run execution
 
     Args:
@@ -48,6 +57,20 @@ def commandRun(runs: dict, run: str):
     """
     if run not in runs:
         raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
+    logging.info(f"Starting run: {run}")
+
+    if 'sequence' in runs[run]:
+        for sequence_run in runs[run]['sequence']:
+            rc = 0
+            if '.' in sequence_run:
+                rc = handleImported(sequence_run, imports)
+            else:
+                rc = commandRun(runs, sequence_run, imports)
+            if rc != 0:
+                return rc
+
+    if 'command' not in runs[run]:
+        return 0
     if type(runs[run]['command']) is str:
         return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''))
     else:
@@ -67,9 +90,9 @@ def getVersion():
     print(f'Myrunner version {ver}')
 
 def isComplete():
-    if argv[1] == '--complete':
+    if len(argv) > 1 and argv[1] == '--complete':
         try:
-            runs = HclReader(argv[2]).readRuns().keys()
+            runs = HclReader(argv[2]).getRuns().keys()
             print(" ".join(list(runs)))
         except runnerExceptions.FileNotFound:
             pass
@@ -84,7 +107,7 @@ def printCompletionScript():
 def main():
     isComplete()
     try:
-        start()
+        return start()
     except runnerExceptions.BaseMyRunnerException as err:
         logging.error(err)
         exit(1)
@@ -94,28 +117,28 @@ def start():
     args = argParser.parse()
     if args.completion:
         printCompletionScript()
+        return 0
     hclReader = HclReader(args.file)
     if args.version:
         getVersion()
         return 0
-    runs_file_settings = hclReader.readSettings()
+    runs_file_settings = hclReader.getSettings()
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
     if args.quite_all:
         executionEngine.disableOutput()
-    runs = hclReader.readRuns()
-    settings = hclReader.readSettings()
+    runs = hclReader.getRuns()
+    settings = hclReader.getSettings()
+    imports = hclReader.getImports()
     if args.describe:
         printRunListDescribe(args.file, settings.get('description', ''))
         printRunsTable(runs, args.runs)
-        logging.info('Exiting')
         return 0
     if args.interactive or runs_file_settings.get('interactive', False):
         executionEngine.ExecutionEngine.interactiveInput = True
         logging.debug('interactive')
     for run in args.runs:
-        logging.info(f"Starting run: {run}")
-        rc = commandRun(runs, run)
+        rc = commandRun(runs, run, imports)
         if rc != 0:
             logging.error('Execution failed')
             exit(rc)

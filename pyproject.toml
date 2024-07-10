@@ -8,7 +8,7 @@ authors = [{ name = "Molkov Daniil", email = "molkovdanil@gmail.com" }]
 description = "Create declarative runs and run then easily!"
 readme = "README.md"
 requires-python = ">=3.7"
-dependencies = ["pygohcl", "jsonschema"]
+dependencies = ["pygohcl==1.1.1", "jsonschema"]
 keywords = ["declarative", "runs", "automation"]
 dynamic = ['version']
 

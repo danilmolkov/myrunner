@@ -1,2 +1,2 @@
-pygohcl
+pygohcl==1.1.1
 jsonschema
