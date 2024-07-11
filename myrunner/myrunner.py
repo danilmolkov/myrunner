@@ -72,11 +72,11 @@ def commandRun(runs: dict, run: str, imports):
     if 'command' not in runs[run]:
         return 0
     if type(runs[run]['command']) is str:
-        return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''))
+        return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''), cwd=runs[run]['cwd'])
     else:
         rc = 0
         for command in runs[run]['command']:
-            rc = executionEngine.command(command, runs[run].get('envs', None), runs[run].get('executable', ''))
+            rc = executionEngine.command(command, runs[run].get('envs', None), runs[run].get('executable', ''), cwd=runs[run]['cwd'])
             if rc != 0:
                 return rc
         return rc

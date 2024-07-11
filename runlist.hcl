@@ -3,14 +3,13 @@ settings {
     interactive = false
 }
 
+import {
+    test = "./test/test.hcl"
+}
+
 run "clear" {
     description = "clean build dir"
     command = "rm -rf dist"
-}
-
-run "unit" {
-    description = "test"
-    command = "python3 -m unittest discover"
 }
 
 run "lint" {
@@ -39,10 +38,10 @@ run "docker" {
 }
 
 run "all" {
-    description = "run all runs"
+    description = "execute all runs"
     sequence = [
         clear,
-        unit,
+        test.unit,
         lint,
         lint_md,
         build,

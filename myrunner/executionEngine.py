@@ -64,7 +64,7 @@ def log_subprocess(log: str):
     for line in log.splitlines():
         print(line, file=ExecutionEngine.outputFd)
 
-def command(command: str, envs, executable: str) -> int:
+def command(command: str, envs, executable: str, cwd: str | None) -> int:
     """Run simple task
     """
     newline = ' '
@@ -78,7 +78,7 @@ def command(command: str, envs, executable: str) -> int:
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           shell=True, universal_newlines=True,
                           executable='/bin/bash' if executable == '' else executable,
-                          cwd=os.getcwd(), pass_fds=(),
+                          cwd=cwd, pass_fds=(),
                           env=ExecutionEngine.provideEnvs(envs)) as proc:
         output_queue = Queue()
         collector = Thread(target=ExecutionEngine.collect,

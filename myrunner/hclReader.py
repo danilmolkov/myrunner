@@ -12,13 +12,22 @@ class HclReader:
         with open(path, 'r') as file:
             # hcl syntax check
             self.obj = pygohcl.loads(file.read())
+
+        # define paths
+        self.__paths['hcl'] = os.path.dirname(os.path.abspath(path))
+        self.__paths['cwd'] = os.getcwd()
+
         # importing runlists
         self.obj['__imported'] = {}
         if 'import' in self.obj:
-            from os import path as ph
-            runfile_dir = ph.dirname(ph.abspath(path))
+
             for run in self.obj['import']:
-                self.obj['__imported'][run] = HclReader(runfile_dir + '/' + self.obj['import'][run]).getRuns()
+                self.obj['__imported'][run] = HclReader(self.__paths['hcl'] + '/' + self.obj['import'][run]).getRuns()
+
+    __paths = {
+        "hcl": "",
+        "cwd": ""
+    }
 
     # TODO: Create general schema
     __settings_schema = {
@@ -36,6 +45,7 @@ class HclReader:
             "description": {"type": "string"},
             "sequence": {"type": "array"},
             "command": {"type": ["string", "array"]},
+            "cwd": {"type": ["null", "string"]},
             "executable": {"type": "string"},
             "envs": {
                 "type": ["null", "array"],
@@ -75,6 +85,14 @@ class HclReader:
                 validate(value, self.__run_schema)
             except exceptions.ValidationError as err:
                 raise runnerExceptions.SchemaValiationError(key, err.message)
+            if value.get('cwd') is not None:
+                if value['cwd'] != "":
+                    value['cwd'] = self.__paths['hcl'] + '/' + value['cwd']
+                else:
+                    value['cwd'] = self.__paths['hcl']
+                print(value['cwd'])
+            else:
+                value['cwd'] = None
         return self.obj['run']
 
     def getImports(self):
