@@ -59,7 +59,7 @@ class executionTesting(unittest.TestCase, myRunnerInterface):
     def testScriptInHeridoc(self):
         runner = testMyRunner('test-runner.hcl')
         self._command(runner, 'heredoc_run')
-        self.assertEqual(self._getResult(), 'myrunner\nworld!\n12345')
+        self.assertEqual(self._getResult(), f'{os.path.basename(os.getcwd())}\nworld!\n12345')
 
     def testEnvironmentHandling(self):
         runner = testMyRunner('environment-vars.hcl')

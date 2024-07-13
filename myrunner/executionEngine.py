@@ -2,6 +2,7 @@ import subprocess
 import os
 import logging
 import sys
+import signal
 from queue import Empty, Queue
 from threading import Thread
 
@@ -11,6 +12,8 @@ DELIM = '========================='
 class ExecutionEngine:
     outputFd = sys.stdout
     interactiveInput = False
+
+    signal = None
 
     @staticmethod
     def collect(proc, output: Queue):
@@ -40,10 +43,17 @@ class ExecutionEngine:
 def disableOutput():
     ExecutionEngine.outputFd = open(os.devnull, 'w')
 
+def signalHandler(sig, _):
+    logging.warning(f"Signal received: {sig} ({signal.Signals(sig).name})")
+    ExecutionEngine.signal = sig
+
 def collectLogsFromSubprocess(proc, output_queue, collector) -> None:
     output = []
     while True:
         if proc.poll() is None:
+            if ExecutionEngine.signal:
+                proc.send_signal(ExecutionEngine.signal)
+                ExecutionEngine.signal = None
             try:
                 output.append(output_queue.get(timeout=0.001))
             except Empty:
@@ -73,6 +83,9 @@ def command(command: str, envs, executable: str, cwd: str | None) -> int:
     logging.info(f'Executing command:{newline}{command}')
     if ExecutionEngine.interactiveInput and ExecutionEngine.askForCommandInput(command):
         return 1
+
+    signal.signal(signal.SIGINT, signalHandler)
+    signal.signal(signal.SIGTERM, signalHandler)
 
     with subprocess.Popen(args=command,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

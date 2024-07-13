@@ -32,7 +32,7 @@ build-package:
     - python -m build
     - pip install dist/myrunner-*-py3-none-any.whl
     - echo "Test package"
-    - myrunner -f test/test.hcl unit
+    - myrunner -f test/unit.hcl unit
   artifacts:
     paths:
       - dist/myrunner-*-py3-none-any.whl
@@ -44,23 +44,6 @@ upload-to-registry:
   script:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
-  only:
-    - tags
-  except:
-    - branches
-
-upload-to-docker-registry:
-  image: docker:26.1.1
-  stage: push
-  services:
-    - docker:26.1.1-dind
-  variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  script:
-    - unset DOCKER_HOST
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
   only:
     - tags
   except:
