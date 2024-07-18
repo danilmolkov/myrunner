@@ -3,13 +3,13 @@ The executable of MyRunner application
 """
 import logging
 from posixpath import basename
+from sys import argv
+from os import path as ph
 
-from . import argParser
+from . import arg_parser
 from .hclReader import HclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
-
-from sys import argv
 
 def printRunListDescribe(file: str, desc: str):
     output = basename(file)
@@ -48,6 +48,7 @@ def commandRun(runs: dict, run: str, imports):
     Args:
         runs (dict): dict of runs
         run (str): run name to run
+        imports (dict): imports of runlist
 
     Returns:
         int: -1 if run not found
@@ -57,7 +58,7 @@ def commandRun(runs: dict, run: str, imports):
     """
     if run not in runs:
         raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
-    logging.info(f"Starting run: {run}")
+    logging.info("Starting run: %s", run)
 
     if 'sequence' in runs[run]:
         for sequence_run in runs[run]['sequence']:
@@ -71,65 +72,68 @@ def commandRun(runs: dict, run: str, imports):
 
     if 'command' not in runs[run]:
         return 0
-    if type(runs[run]['command']) is str:
-        return executionEngine.command(runs[run]['command'], runs[run].get('envs', None), runs[run].get('executable', ''), cwd=runs[run]['cwd'])
-    else:
-        rc = 0
-        for command in runs[run]['command']:
-            rc = executionEngine.command(command, runs[run].get('envs', None), runs[run].get('executable', ''), cwd=runs[run]['cwd'])
-            if rc != 0:
-                return rc
-        return rc
+    if isinstance(runs[run]['command'], str):
+        return executionEngine.command(runs[run]['command'], runs[run].get('envs', None),
+                                       runs[run].get('executable', ''), cwd=runs[run]['cwd'],
+                                       ignore_rc=runs[run].get('ignore_retcode', False))
+    rc = 0
+    for command in runs[run]['command']:
+        rc = executionEngine.command(command, runs[run].get('envs', None),
+                                     runs[run].get('executable', ''), cwd=runs[run]['cwd'],
+                                     ignore_rc=runs[run].get('ignore_retcode', False))
+        if rc != 0:
+            return rc
+    return rc
 
-def getVersion():
+def getversion() -> None:
+    """get version of myrunner
+    """
     try:
         from ._version import version as ver
     except ModuleNotFoundError:
         ver = 'Developing'
-        pass
     print(f'Myrunner version {ver}')
 
-def isComplete():
+def iscomplete():
     if len(argv) > 1 and argv[1] == '--complete':
         try:
-            runs = HclReader(argv[2]).getRuns().keys()
+            runs = HclReader(argv[2]).getruns().keys()
             print(" ".join(list(runs)))
         except runnerExceptions.FileNotFound:
             pass
         exit(0)
 
 def printCompletionScript():
-    from os import path as ph
     script_dir = ph.dirname(ph.abspath(__file__))
-    with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r') as f:
+    with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r', encoding='utf-8') as f:
         print(f.read())
 
 def main():
-    isComplete()
+    iscomplete()
     try:
         return start()
     except runnerExceptions.BaseMyRunnerException as err:
         logging.error(err)
-        exit(1)
+        return 1
 
 def start():
     loggingSetup()
-    args = argParser.parse()
+    args = arg_parser.parse()
     if args.completion:
         printCompletionScript()
         return 0
     hclReader = HclReader(args.file)
     if args.version:
-        getVersion()
+        getversion()
         return 0
-    runs_file_settings = hclReader.getSettings()
+    runs_file_settings = hclReader.getsettings()
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
     if args.quite_all:
         executionEngine.disableOutput()
-    runs = hclReader.getRuns()
-    settings = hclReader.getSettings()
-    imports = hclReader.getImports()
+    runs = hclReader.getruns()
+    settings = hclReader.getsettings()
+    imports = hclReader.getimports()
     if args.describe:
         printRunListDescribe(args.file, settings.get('description', ''))
         printRunsTable(runs, args.runs)
@@ -138,8 +142,7 @@ def start():
         executionEngine.ExecutionEngine.interactiveInput = True
         logging.debug('interactive')
     for run in args.runs:
-        rc = commandRun(runs, run, imports)
-        if rc != 0:
+        if (rc := commandRun(runs, run, imports)) != 0:
             logging.error('Execution failed')
             exit(rc)
     return 0

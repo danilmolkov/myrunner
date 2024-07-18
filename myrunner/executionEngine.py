@@ -6,8 +6,6 @@ import signal
 from queue import Empty, Queue
 from threading import Thread
 
-DELIM = '========================='
-
 # TODO: Move everyting under class
 class ExecutionEngine:
     outputFd = sys.stdout
@@ -34,20 +32,19 @@ class ExecutionEngine:
         return result
 
     @staticmethod
-    def askForCommandInput(command: str):
-        answer = input(f'Running {command}. Type \'yes\' to run: ')
-        if answer in ['yes', '\'yes\'', '"yes"']:
+    def askForCommandInput(cmd: str):
+        if input(f'Running {cmd}. Type \'yes\' to run: ') in ['yes', '\'yes\'', '"yes"']:
             return 0
         return 1
 
 def disableOutput():
-    ExecutionEngine.outputFd = open(os.devnull, 'w')
+    ExecutionEngine.outputFd = open(os.devnull, 'w', encoding='utf-8')
 
-def signalHandler(sig, _):
-    logging.warning(f"Signal received: {sig} ({signal.Signals(sig).name})")
+def signal_handler(sig, _):
+    logging.warning("Signal received: %d (%s)", sig, signal.Signals(sig).name)
     ExecutionEngine.signal = sig
 
-def collectLogsFromSubprocess(proc, output_queue, collector) -> None:
+def collect_logs_from_subprocess(proc, output_queue, collector) -> None:
     output = []
     while True:
         if proc.poll() is None:
@@ -74,20 +71,20 @@ def log_subprocess(log: str):
     for line in log.splitlines():
         print(line, file=ExecutionEngine.outputFd)
 
-def command(command: str, envs, executable: str, cwd: str | None) -> int:
+def command(command_string: str, envs, executable: str, cwd: str | None, ignore_rc: bool) -> int:
     """Run simple task
     """
     newline = ' '
-    if '\n' in command:
+    if '\n' in command_string:
         newline = '\n'
-    logging.info(f'Executing command:{newline}{command}')
-    if ExecutionEngine.interactiveInput and ExecutionEngine.askForCommandInput(command):
+    logging.info('Executing command:%s%s', newline, command_string)
+    if ExecutionEngine.interactiveInput and ExecutionEngine.askForCommandInput(command_string):
         return 1
 
-    signal.signal(signal.SIGINT, signalHandler)
-    signal.signal(signal.SIGTERM, signalHandler)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
-    with subprocess.Popen(args=command,
+    with subprocess.Popen(args=command_string,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           shell=True, universal_newlines=True,
                           executable='/bin/bash' if executable == '' else executable,
@@ -98,9 +95,13 @@ def command(command: str, envs, executable: str, cwd: str | None) -> int:
                            args=(proc.stdout, output_queue),
                            name='collector', daemon=True)
         collector.start()
-        collectLogsFromSubprocess(proc, output_queue, collector)
-        rc = proc.returncode
-        if rc != 0:
-            logging.error(f'Command failed! [{rc}]')
+        collect_logs_from_subprocess(proc, output_queue, collector)
+        if (rc := proc.returncode) != 0:
+            if ignore_rc:
+                logging.info('Completed with non-zero return code. [%d]', rc)
+                return 0
+            logging.error('Command failed! [%d]', rc)
+            return rc
+
         logging.info('Command finished')
         return rc
