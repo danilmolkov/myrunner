@@ -1,3 +1,4 @@
+#!/usr/bin/myrunner -f
 settings {
     description = "runlist for myrunner"
     interactive = false
@@ -10,12 +11,18 @@ import {
 run "clear" {
     description = "clean build dir"
     command = "rm -rf dist"
+
+    // ignore_retcode = true
 }
 
 run "lint" {
     description = "run flake8 linter"
-    command = "flake8"
-    cwd = "./test"
+    // sequence = [
+    //     unit.lint
+    // ]
+    command = ["flake8",
+               "pylint ./myrunner"
+            ]
 }
 
 run "lint_md" {
@@ -41,6 +48,14 @@ run "docker" {
     command = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag myrunner:$${VERSION%%+*}"
 }
 
+run "copy_from_local_to_bin" {
+    description = "copy myrunner executable to /usr/bin"
+    command = [
+        "sudo cp /home/dmolkov/.local/bin/myrunner /usr/bin/",
+        "test -e /usr/bin/myrunner"
+    ]
+}
+
 run "all" {
     description = "execute all runs"
     sequence = [
@@ -51,8 +66,4 @@ run "all" {
         build,
         install
     ]
-}
-
-run "test_term" {
-    command = "./script.sh"
 }

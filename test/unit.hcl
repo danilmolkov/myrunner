@@ -4,6 +4,12 @@ run "unit" {
     cwd = "../"
 }
 
+// run "lint" {
+//     description = "lint test_module"
+//     command = "pylint test_module.py"
+//     cwd = "."
+// }
+
 run "unit_docker" {
     description = "perform unit testing in isolated env with docker"
     command = [

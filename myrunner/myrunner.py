@@ -122,10 +122,10 @@ def start():
     if args.completion:
         printCompletionScript()
         return 0
-    hclReader = HclReader(args.file)
     if args.version:
         getversion()
         return 0
+    hclReader = HclReader(args.file)
     runs_file_settings = hclReader.getsettings()
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
