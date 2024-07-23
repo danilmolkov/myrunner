@@ -11,8 +11,6 @@ import {
 run "clear" {
     description = "clean build dir"
     command = "rm -rf dist"
-
-    // ignore_retcode = true
 }
 
 run "lint" {
@@ -45,7 +43,7 @@ run "install" {
 
 run "docker" {
     description = "build docker image"
-    command = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag myrunner:$${VERSION%%+*}"
+    command = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)') && docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag registry.gitlab.com/danilmolkov/myrunner:stable"
 }
 
 run "copy_from_local_to_bin" {

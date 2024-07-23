@@ -111,13 +111,13 @@ def printCompletionScript():
 def main():
     iscomplete()
     try:
+        loggingSetup()
         return start()
     except runnerExceptions.BaseMyRunnerException as err:
         logging.error(err)
         return 1
 
-def start():
-    loggingSetup()
+def start():  # noqa: C901
     args = arg_parser.parse()
     if args.completion:
         printCompletionScript()
@@ -125,26 +125,30 @@ def start():
     if args.version:
         getversion()
         return 0
+    if args.user_runlist:
+        if (home := ph.expanduser('~')) is None:
+            logging.error("Failed to get home path")
+            return 1
+        args.file = home + '/.' + args.file
     hclReader = HclReader(args.file)
-    runs_file_settings = hclReader.getsettings()
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
     if args.quite_all:
         executionEngine.disableOutput()
     runs = hclReader.getruns()
     settings = hclReader.getsettings()
-    imports = hclReader.getimports()
     if args.describe:
         printRunListDescribe(args.file, settings.get('description', ''))
         printRunsTable(runs, args.runs)
         return 0
-    if args.interactive or runs_file_settings.get('interactive', False):
+    if args.interactive or settings.get('interactive', False):
         executionEngine.ExecutionEngine.interactiveInput = True
         logging.debug('interactive')
+    imports = hclReader.getimports()
     for run in args.runs:
         if (rc := commandRun(runs, run, imports)) != 0:
             logging.error('Execution failed')
-            exit(rc)
+            return rc
     return 0
 
 def loggingSetup():

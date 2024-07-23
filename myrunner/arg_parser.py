@@ -29,6 +29,10 @@ def parse():
                         help='(experimental!) ask interactively '
                         'about running and environment variables')
 
+    parser.add_argument('-u', '--user-runlist', dest='user_runlist', action='store_true',
+                        help='use user runlist (~/.runlist.hcl) instead of'
+                             'provided with -f or default')
+
     group = parser.add_argument_group('other')
     group.add_argument('--completion', dest='completion', action='store_true',
                        help='print autocompletion script. '

@@ -19,12 +19,19 @@ function __myrunner_completions {
         return -1
     fi
     local __myrunner_filepath="runlist.hcl"
+    local __use_user_filepath=""
 
     for (( i=0; i<((${#COMP_WORDS})); i++ ))
     do
         case ${COMP_WORDS[$i]} in
             -f)
+                __myrunner_debug_print "local path used"
                 __myrunner_filepath=${COMP_WORDS[$((i+1))]}
+                ;;
+            -u)
+                __myrunner_debug_print "user path used"
+                __use_user_filepath="true"
+                __myrunner_filepath="${HOME}/.runlist.hcl"
                 break
                 ;;
             *)
@@ -47,6 +54,7 @@ function __myrunner_completions {
         return
     fi
 
+    __myrunner_debug_print "__myrunner_filepath ${__myrunner_filepath}"
     local LIST=$(python3 ~/.local/bin/myrunner --complete ${__myrunner_filepath})
     __myrunner_debug_print "LIST:${LIST}"
     COMPREPLY=($(compgen -W "$LIST" "${COMP_WORDS[-1]}"))
