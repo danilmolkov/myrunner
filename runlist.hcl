@@ -4,6 +4,13 @@ settings {
     interactive = false
 }
 
+locals {
+    bird = "awebo"
+    number = "one"
+    cat = "meow"
+    myrunner_version = "$(python3 -c 'from myrunner._version import __version__; print(__version__)')"
+}
+
 import {
     unit = "./test/unit.hcl"
 }
@@ -37,13 +44,13 @@ run "build" {
 
 run "install" {
     description = "install myrunner package on the host"
-    command = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)'); python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
+    command = "VERSION=${local.myrunner_version}; python3 -m pip install dist/myrunner-$${VERSION}-py3-none-any.whl --force-reinstall"
     cwd = "."
 }
 
 run "docker" {
     description = "build docker image"
-    command = "VERSION=$(python3 -c 'from myrunner._version import __version__; print(__version__)') && docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag registry.gitlab.com/danilmolkov/myrunner:stable"
+    command = "VERSION=${local.myrunner_version} && docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag registry.gitlab.com/danilmolkov/myrunner:stable"
 }
 
 run "copy_from_local_to_bin" {
@@ -64,4 +71,9 @@ run "all" {
         build,
         install
     ]
+}
+
+run "awebo" {
+    description = "Bird says ${local.bird} ${local.number}"
+    command = "echo '( * |> ${local.bird}| = ^ ^ = ${local.cat}'"
 }

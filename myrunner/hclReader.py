@@ -11,6 +11,8 @@ class HclReader:
         if isinstance(data, bytes):
             self.__filepath = ''
             self.obj = pygohcl.loadb(data)
+            text, _ = self.__tokenize(data.decode(encoding="utf-8"))
+            self.obj = pygohcl.loads(text)
         else:
             # open file
             self.__filepath = data
@@ -18,7 +20,10 @@ class HclReader:
                 raise runnerExceptions.FileNotFound(data)
             with open(data, 'r', encoding='utf-8') as file:
                 # hcl syntax check
-                self.obj = pygohcl.loads(file.read())
+                file_data = file.read()
+                self.obj = pygohcl.loads(file_data)
+                text, _ = self.__tokenize(file_data)
+                self.obj = pygohcl.loads(text)
 
         # define paths
         self.__paths = {}
@@ -31,6 +36,39 @@ class HclReader:
             for run in self.obj['import']:
                 self.obj['__imported'][run] = HclReader(f"{self.__paths['hcl']}/{self.obj['import'][run]}").getruns()
 
+
+    def __validate_tokenname(self, token_name:str) -> str:
+        if  '.' not in token_name:
+            raise runnerExceptions.SchemaValiationError('test', f'{token_name} is unknown')
+
+        token_path = token_name.split('.', 1)
+        if token_path[0] != 'local':
+            raise runnerExceptions.SchemaValiationError('test', f'{token_path[0]} is unknown')
+        replacements = self.obj.get('locals', {})
+        try:
+            return str(replacements[token_path[1]])
+        except KeyError as exc:
+            raise runnerExceptions.SchemaValiationError('test', f'{token_path[1]} is not found')
+
+    def __tokenize(self, file_data: str):
+        import re
+        text = file_data
+        # Create a regular expression pattern that matches ${...} but not $${...}
+        pattern = re.compile(r"(?<!\$)\$\{(.*?)\}")
+        token_names = []
+
+        # Function to return the replacement value from the dictionary
+        def substitute(match):
+            # Get the token name (content within ${})
+            token_name = match.group(1)
+            # Add the token name to the list
+            token_names.append(token_name)
+            # Return the replacement if it exists, else return the original token
+            return self.__validate_tokenname(token_name)
+        # Use re.sub() to replace the tokens
+        new_text = pattern.sub(substitute, text)
+        return new_text, token_names
+
     # TODO: Create general schema
     __settings_schema = {
         "type": "object",
@@ -39,6 +77,15 @@ class HclReader:
             "description": {"type": "string"}
         },
         "additionalProperties": False
+    }
+
+    __locals_schema = {
+        "type": "object",
+        # "properties": {
+        #     "interactive": {"type": "boolean"},
+        #     "description": {"type": "string"}
+        # },
+        "additionalProperties": "true"
     }
 
     __run_schema = {
@@ -109,3 +156,6 @@ class HclReader:
             dict: imported runs
         """
         return self.obj['__imported']
+
+    def getlocals(self) -> dict:
+        return self.obj['locals']

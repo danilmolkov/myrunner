@@ -198,5 +198,46 @@ run "seq_rc" {
         self.assertEqual(self._getResult(), 'Failing :(\nFailing :(')
 
 
+class LocalsSubstitution(MyrunnerTestCase):
+    def setUp(self) -> None:
+        ExecutionEngine.outputFd = StringIO('')
+        mr.loggingSetup()
+
+    def testRunSuccefulSubs(self):
+        data = """
+locals {
+    bird = "awebo"
+}
+
+run "some_bird_says" {
+    command = "echo ${local.bird}"
+}
+        """.encode("utf-8")
+
+        runner = TestMyRunner(None, data=data)
+        self._command(runner, 'some_bird_says')
+        self.assertEqual(self._getResult(), 'awebo')
+
+
+#     def testRunSequence(self):
+#         data = """
+# run "test_rc" {
+#     command = "function fail_function() { echo 'Failing :('; return 1; }; fail_function"
+#     ignore_retcode = true
+# }
+# run "seq_rc" {
+#     sequence = [
+#         # should pass
+#         test_rc
+#     ]
+#     # should not pass as no ignore_retcode
+#     command = "function fail_function() { echo 'Failing :('; return 1; }; fail_function"
+# }
+#         """.encode("utf-8")
+
+#         runner = TestMyRunner(None, data=data)
+#         self._command_failed(runner, 'seq_rc')
+#         self.assertEqual(self._getResult(), 'Failing :(\nFailing :(')
+
 if __name__ == '__main__':
     unittest.main()

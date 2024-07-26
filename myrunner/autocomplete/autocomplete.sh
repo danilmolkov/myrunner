@@ -19,7 +19,6 @@ function __myrunner_completions {
         return -1
     fi
     local __myrunner_filepath="runlist.hcl"
-    local __use_user_filepath=""
 
     for (( i=0; i<((${#COMP_WORDS})); i++ ))
     do
@@ -30,7 +29,6 @@ function __myrunner_completions {
                 ;;
             -u)
                 __myrunner_debug_print "user path used"
-                __use_user_filepath="true"
                 __myrunner_filepath="${HOME}/.runlist.hcl"
                 break
                 ;;
