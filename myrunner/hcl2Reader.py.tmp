@@ -1,0 +1,88 @@
+import hcl2
+import logging
+from jsonschema import validate, exceptions
+import os.path
+
+import myrunner.common.runnerExceptions as runnerExceptions
+
+class HclReader:
+    def __init__(self, path: str) -> None:
+        if not os.path.exists(path) or os.path.isdir(path):
+            raise runnerExceptions.FileNotFound(path)
+        with open(path, 'r') as file:
+            # hcl syntax check
+            self.obj = hcl2.load(file)
+        # importing runlists
+        self.obj['__imported'] = {}
+        if 'import' in self.obj:
+            from os import path as ph
+            runfile_dir = ph.dirname(ph.abspath(path))
+            for data in self.obj['import']:
+                run = next(iter(data.keys()))
+                self.obj['__imported'][run] = HclReader(runfile_dir + '/' + data[run]).getruns()
+
+    # TODO: Create general schema
+    __settings_schema = {
+        "type": "object",
+        "properties": {
+            "interactive": {"type": "boolean"},
+            "description": {"type": "string"}
+        },
+        "additionalProperties": False
+    }
+
+    __run_schema = {
+        "type": "object",
+        "properties": {
+            "description": {"type": "string"},
+            "sequence": {"type": "array"},
+            "command": {"type": ["string", "array"]},
+            "executable": {"type": "string"},
+            "envs": {
+                "type": ["null", "array"],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "default": {
+                        "type": "string"
+                    },
+                },
+                "required": ["name"],
+                "additionalProperties": False
+            }
+        },
+        "additionalProperties": False
+    }
+
+    def getsettings(self) -> dict:
+        if self.obj.get('settings') is None:
+            return {}
+        setting_block = self.obj['settings'][0]
+        if type(setting_block) is list and len(setting_block) > 1:
+            raise runnerExceptions.SchemaValiationError('test', 'settings block should be only one')
+        try:
+            validate(setting_block, self.__settings_schema)
+        except exceptions.ValidationError as err:
+            raise runnerExceptions.SchemaValiationError('test', err.message)
+        return setting_block
+
+    def getruns(self) -> dict:
+
+        result = {}
+
+        for item in self.obj['run']:
+            for key, value in item.items():
+                if '.' in key:
+                    raise runnerExceptions.SchemaValiationError(key, '\'.\' in run name is not allowed')
+                if '-' in key:
+                    logging.warn(f"using '-' in run name is not adviced : {key}")
+                try:
+                    validate(value, self.__run_schema)
+                    result[key] = value
+                except exceptions.ValidationError as err:
+                    raise runnerExceptions.SchemaValiationError(key, err.message)
+        return result
+
+    def getimports(self):
+        return self.obj['__imported']

@@ -1,8 +1,7 @@
 # exceptions.py
-
-class BaseMyRunnerException(Exception):
+from abc import ABC
+class BaseMyRunnerException(ABC, Exception):
     """Base class for other exceptions"""
-    pass
 
 
 class FileNotFound(BaseMyRunnerException):
