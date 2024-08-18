@@ -36,18 +36,18 @@ class HclReader:
             for run in self.obj['import']:
                 self.obj['__imported'][run] = HclReader(f"{self.__paths['hcl']}/{self.obj['import'][run]}").getruns()
 
-
-    def __validate_tokenname(self, token_name:str) -> str:
-        if  '.' not in token_name:
+    def __validate_tokenname(self, token_name: str) -> str:
+        if '.' not in token_name:
             raise runnerExceptions.SchemaValiationError('test', f'{token_name} is unknown')
 
         token_path = token_name.split('.', 1)
+        # temporary check only local
         if token_path[0] != 'local':
             raise runnerExceptions.SchemaValiationError('test', f'{token_path[0]} is unknown')
         replacements = self.obj.get('locals', {})
         try:
             return str(replacements[token_path[1]])
-        except KeyError as exc:
+        except KeyError:
             raise runnerExceptions.SchemaValiationError('test', f'{token_path[1]} is not found')
 
     def __tokenize(self, file_data: str):

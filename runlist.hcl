@@ -77,3 +77,22 @@ run "awebo" {
     description = "Bird says ${local.bird} ${local.number}"
     command = "echo '( * |> ${local.bird}| = ^ ^ = ${local.cat}'"
 }
+
+run "squild" {
+    description = "turn on/off squid container"
+    command = <<EOT
+# Replace 'container_name' with the name of your Docker container
+CONTAINER_NAME="squid"
+
+# Check if the container is running
+CONTAINER_STATUS=$(docker ps --filter "name=$CONTAINER_NAME" --filter "status=running" -q)
+
+if [ -n "$CONTAINER_STATUS" ]; then
+    echo "Stopping container: $CONTAINER_NAME"
+    docker stop $CONTAINER_NAME 1> /dev/null
+else
+    echo "Starting container: $CONTAINER_NAME"
+    docker start $CONTAINER_NAME 1> /dev/null
+fi
+EOT
+}
