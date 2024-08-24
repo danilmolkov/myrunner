@@ -48,10 +48,18 @@ run "install" {
     cwd = "."
 }
 
-run "docker" {
+run "docker_gitlab_build" {
     description = "build docker image"
     command = "VERSION=${local.myrunner_version} && docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag registry.gitlab.com/danilmolkov/myrunner:stable"
 }
+
+run "docker_gitlab_push" {
+    description = "docker push image"
+    command = [
+        "docker login registry.gitlab.com",
+        "docker push registry.gitlab.com/danilmolkov/myrunner"]
+}
+
 
 run "copy_from_local_to_bin" {
     description = "copy myrunner executable to /usr/bin"

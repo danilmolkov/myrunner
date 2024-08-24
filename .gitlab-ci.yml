@@ -6,14 +6,14 @@ stages:
 
 unit-test:
   stage: test
-  image: python:3.10
+  image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
     - pip install -r requirements.txt
     - python3 -m unittest discover
 
 lint:
   stage: linting
-  image: python:3.10
+  image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
     - pip install flake8
     - flake8
@@ -26,7 +26,7 @@ markdownlint:
 
 build-package:
   stage: build
-  image: python:3.10
+  image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
     - pip install build
     - python -m build
@@ -40,7 +40,7 @@ build-package:
 
 upload-to-registry:
   stage: push
-  image: python:3.10
+  image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
