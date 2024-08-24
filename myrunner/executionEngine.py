@@ -1,14 +1,14 @@
 import subprocess
 import os
 import logging
-import sys
 import signal
 from queue import Empty, Queue
 from threading import Thread
-
+import time
+from .execution_logger import ExecutionLogger
 # TODO: Move everyting under class
 class ExecutionEngine:
-    outputFd = sys.stdout
+    el = ExecutionLogger('disable')
     interactiveInput = False
 
     signal = None
@@ -24,8 +24,7 @@ class ExecutionEngine:
             return os.environ
         result = {}
         for env in envs:
-            env_value = os.environ.get(env['name'])
-            if env_value:
+            if env_value := os.environ.get(env['name']):
                 result[env['name']] = env_value
                 continue
             result[env['name']] = env['default']
@@ -38,7 +37,10 @@ class ExecutionEngine:
         return 1
 
 def disableOutput():
-    ExecutionEngine.outputFd = open(os.devnull, 'w', encoding='utf-8')
+    ExecutionEngine.el.set_output_fd(open(os.devnull, 'w', encoding='utf-8'))
+
+def set_logging(mode: str):
+    ExecutionEngine.el.set(mode)
 
 def signal_handler(sig, _):
     logging.warning("Signal received: %d (%s)", sig, signal.Signals(sig).name)
@@ -68,22 +70,27 @@ def collect_logs_from_subprocess(proc, output_queue, collector) -> None:
             break
 
 def log_subprocess(log: str):
-    for line in log.splitlines():
-        print(line, file=ExecutionEngine.outputFd)
+    # import textwrap
+    for line in log.splitlines(keepends=False):
+        ExecutionEngine.el.print_output(line)
 
-def command(command_string: str, envs, executable: str, cwd: str | None, ignore_rc: bool) -> int:
+def command(run_name: str, command_string: str, envs, executable: str, cwd: str | None, ignore_rc: bool) -> int:
     """Run simple task
     """
-    newline = ' '
-    if '\n' in command_string:
-        newline = '\n'
-    logging.info('Executing command:%s%s', newline, command_string)
+    # newline = ' '
+    # if '\n' in command_string:
+    #     newline = '\n'
+    # logging.info('Executing command:%s%s', newline, command_string)
+    el = ExecutionEngine.el
+    el.print_cwd('/bin/bash' if executable == '' else executable)
+    el.print_command(command_string)
     if ExecutionEngine.interactiveInput and ExecutionEngine.askForCommandInput(command_string):
         return 1
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    el.print_runname(run_name)
     with subprocess.Popen(args=command_string,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           shell=True, universal_newlines=True,
@@ -94,8 +101,11 @@ def command(command_string: str, envs, executable: str, cwd: str | None, ignore_
         collector = Thread(target=ExecutionEngine.collect,
                            args=(proc.stdout, output_queue),
                            name='collector', daemon=True)
+        start = time.time()
         collector.start()
         collect_logs_from_subprocess(proc, output_queue, collector)
+        end_time = time.time()
+        el.print_time(f'{int(end_time - start)} seconds')
         if (rc := proc.returncode) != 0:
             if ignore_rc:
                 logging.info('Completed with non-zero return code. [%d]', rc)

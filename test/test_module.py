@@ -29,20 +29,20 @@ class MyrunnerTestCase(unittest.TestCase):
         self.assertNotEqual(runner.command(run), 0, 'return code is successfull')
 
     def _clearBuffer(self):
-        ExecutionEngine.outputFd.truncate(0)
-        ExecutionEngine.outputFd.seek(0)
+        ExecutionEngine.el.get_fd().truncate(0)
+        ExecutionEngine.el.get_fd().seek(0)
 
     def _getResult(self):
-        return ExecutionEngine.outputFd.getvalue().rstrip('\n')
+        return ExecutionEngine.el.get_fd().getvalue().rstrip('\n')
 
 class ExecutionTesting(MyrunnerTestCase):
 
     def setUp(self) -> None:
-        ExecutionEngine.outputFd = StringIO('')
+        ExecutionEngine.el.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def tearDown(self):
-        ExecutionEngine.outputFd.close()
+        ExecutionEngine.el.get_fd().close()
 
     def testFirstRun(self):
         firstRunner = TestMyRunner('test-runner.hcl')
@@ -128,11 +128,11 @@ class FileReadingTesting(unittest.TestCase):
 
 class SequenceTesting(MyrunnerTestCase):
     def setUp(self) -> None:
-        ExecutionEngine.outputFd = StringIO('')
+        ExecutionEngine.el.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def tearDown(self):
-        ExecutionEngine.outputFd.close()
+        ExecutionEngine.el.get_fd().close()
 
     def testSequence(self):
         runner = TestMyRunner('sequence.hcl')
@@ -162,7 +162,7 @@ class SequenceTesting(MyrunnerTestCase):
 
 class IgnoreRetCodeTesting(MyrunnerTestCase):
     def setUp(self) -> None:
-        ExecutionEngine.outputFd = StringIO('')
+        ExecutionEngine.el.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def testRunExecution(self):
@@ -200,7 +200,7 @@ run "seq_rc" {
 
 class LocalsSubstitution(MyrunnerTestCase):
     def setUp(self) -> None:
-        ExecutionEngine.outputFd = StringIO('')
+        ExecutionEngine.el.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def testRunSuccefulSubs(self):

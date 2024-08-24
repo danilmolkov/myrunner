@@ -72,3 +72,6 @@ run "all" {
         install
     ]
 }
+run "awebo" {
+    command = ["echo ':<(${local.bird})'", "echo ':<(${local.bird})'"]
+}

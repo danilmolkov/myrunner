@@ -58,7 +58,7 @@ def commandRun(runs: dict, run: str, imports):
     """
     if run not in runs:
         raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
-    logging.info("Starting run: %s", run)
+    logging.debug("Starting run: %s", run)
 
     if 'sequence' in runs[run]:
         for sequence_run in runs[run]['sequence']:
@@ -73,14 +73,18 @@ def commandRun(runs: dict, run: str, imports):
     if 'command' not in runs[run]:
         return 0
     if isinstance(runs[run]['command'], str):
-        return executionEngine.command(runs[run]['command'], runs[run].get('envs', None),
+        return executionEngine.command(run, runs[run]['command'], runs[run].get('envs', None),
                                        runs[run].get('executable', ''), cwd=runs[run]['cwd'],
                                        ignore_rc=runs[run].get('ignore_retcode', False))
     rc = 0
+    current = 1
     for command in runs[run]['command']:
-        rc = executionEngine.command(command, runs[run].get('envs', None),
+        size = len(runs[run]['command'])
+        rc = executionEngine.command(f'{run} ({current}/{size})',
+                                     command, runs[run].get('envs', None),
                                      runs[run].get('executable', ''), cwd=runs[run]['cwd'],
                                      ignore_rc=runs[run].get('ignore_retcode', False))
+        current = current + 1
         if rc != 0:
             return rc
     return rc
@@ -108,13 +112,24 @@ def printCompletionScript():
     with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r', encoding='utf-8') as f:
         print(f.read())
 
+def parse_logging_settings(args):
+    if args.quite or args.quite_all:
+        logging.disable(logging.CRITICAL)
+    if args.quite_all:
+        executionEngine.disableOutput()
+    if args.pretty:
+        executionEngine.set_logging(args.pretty)
+
 def main():
     iscomplete()
     try:
         loggingSetup()
-        return start()
+        rc = start()
+        logging.info('Finishing myrunner')
+        return rc
     except runnerExceptions.BaseMyRunnerException as err:
         logging.error(err)
+        logging.info('Finishing myrunner')
         return 1
 
 def start():  # noqa: C901
@@ -125,16 +140,18 @@ def start():  # noqa: C901
     if args.version:
         getversion()
         return 0
+    logging.info('Starting myrunner')
+    # if args.docker:
+    #     docker = DockerInteraction(args.docker)
+    #     hclReader = HclReader((docker.get_runlist_from_container()))
+    #     docker.command(hclReader.getruns()['send_request']['command'], {})
     if args.user_runlist:
         if (home := ph.expanduser('~')) is None:
             logging.error("Failed to get home path")
             return 1
         args.file = home + '/.' + args.file
     hclReader = HclReader(args.file)
-    if args.quite or args.quite_all:
-        logging.disable(logging.CRITICAL)
-    if args.quite_all:
-        executionEngine.disableOutput()
+    parse_logging_settings(args)
     runs = hclReader.getruns()
     settings = hclReader.getsettings()
     if args.describe:
@@ -154,9 +171,9 @@ def start():  # noqa: C901
 def loggingSetup():
     # note: critical is not used
     logging.getLogger('myrunner')
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 if __name__ == '__main__':
-    main()
+    exit(main())
