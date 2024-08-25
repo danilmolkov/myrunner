@@ -6,17 +6,15 @@ stages:
 
 unit-test:
   stage: test
-  image: python:3.10
+  image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
-    - pip install -r requirements.txt
-    - python3 -m unittest discover
+    - myrunner --file ./test/unit.hcl unit
 
 lint:
   stage: linting
-  image: python:3.10
+  image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
-    - pip install flake8
-    - flake8
+    - myrunner install_lint_tools lint
 
 markdownlint:
   stage: linting

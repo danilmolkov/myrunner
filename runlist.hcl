@@ -20,6 +20,11 @@ run "clear" {
     command = "rm -rf dist"
 }
 
+run "install_lint_tools" {
+    description = "install tools for linting myrunner code"
+    command = "pip install pylint flake8"
+}
+
 run "lint" {
     description = "run flake8 linter"
     // sequence = [
