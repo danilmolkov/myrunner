@@ -3,6 +3,15 @@ from abc import ABC
 class BaseMyRunnerException(ABC, Exception):
     """Base class for other exceptions"""
 
+    def pretty_output(self):
+        print('\033[91m┌─ Error')
+        if type(self.message) is str:
+            print('│', self.message)
+        else:
+            for line in self.message:
+                print('│', line)
+        print('└─', '\033[0m')
+
 
 class FileNotFound(BaseMyRunnerException):
     """Raised when the file is not found"""
@@ -13,12 +22,26 @@ class FileNotFound(BaseMyRunnerException):
         super().__init__(self.message)
 
 
-class SchemaValiationError(BaseMyRunnerException):
-    """Raised when a resource is not found"""
+class SchemaValiationErrorPedantic(BaseMyRunnerException):
+    """Raised when some parameter is not valid"""
 
-    def __init__(self, resource, message="Resource not found"):
-        self.resource = resource
-        self.message = f"{resource}: {message}"
+    def __init__(self, field, errors):
+
+        self.message = []
+        self.message.append(f'{field}')
+        for error in errors:
+            self.message.append(error['loc'][0] + ': ' + error['msg'])
+
+        self.field = field
+        super().__init__(self.message)
+
+class SchemaValiationError(BaseMyRunnerException):
+    """Raised when some parameter is not valid"""
+
+    def __init__(self, parameter, message="Resource not found"):
+
+        self.parameter = parameter
+        self.message = f"{parameter}: {message}"
         super().__init__(self.message)
 
 

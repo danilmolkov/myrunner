@@ -4,6 +4,8 @@ import logging
 import pygohcl
 from jsonschema import validate, exceptions
 
+from pydantic import BaseModel, ValidationError
+
 import myrunner.common.runnerExceptions as runnerExceptions
 
 class HclReader:
@@ -69,7 +71,10 @@ class HclReader:
         new_text = pattern.sub(substitute, text)
         return new_text, token_names
 
-    # TODO: Create general schema
+    class Settings(BaseModel):
+        interactive: bool | None
+        description: str | None
+
     __settings_schema = {
         "type": "object",
         "properties": {
@@ -120,11 +125,12 @@ class HclReader:
         if self.obj.get('settings') is None:
             return {}
         if isinstance(self.obj.get('settings'), list):
-            raise runnerExceptions.SchemaValiationError('test', 'settings block should be only one')
+            raise runnerExceptions.SchemaValiationError('settings', 'block should be only one')
         try:
-            validate(self.obj.get('settings'), self.__settings_schema)
-        except exceptions.ValidationError as err:
-            raise runnerExceptions.SchemaValiationError('test', err.message)
+            self.Settings(**self.obj.get('settings'))
+        except ValidationError as err:
+            print(err.errors())
+            raise runnerExceptions.SchemaValiationErrorPedantic('settings', err.errors())
         return self.obj['settings']
 
     def getruns(self) -> dict:

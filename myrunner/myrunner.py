@@ -57,7 +57,7 @@ def commandRun(runs: dict, run: str, imports):
         runnerExceptions.SchemaValiationError if run is not found
     """
     if run not in runs:
-        raise runnerExceptions.SchemaValiationError('test', f'run {run} not found')
+        raise runnerExceptions.SchemaValiationError(run, 'run is not found')
     logging.debug("Starting run: %s", run)
 
     if 'sequence' in runs[run]:
@@ -128,7 +128,7 @@ def main():
         logging.info('Finishing myrunner')
         return rc
     except runnerExceptions.BaseMyRunnerException as err:
-        logging.error(err)
+        err.pretty_output()
         logging.info('Finishing myrunner')
         return 1
 
@@ -136,7 +136,7 @@ def start():  # noqa: C901
     args = arg_parser.parse()
     if args.completion:
         printCompletionScript()
-        return 0
+        exit(0)
     if args.version:
         getversion()
         return 0
