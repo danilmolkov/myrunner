@@ -8,6 +8,7 @@ unit-test:
   stage: test
   image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
+    - python -m pip install -r  requirements.txt
     - myrunner --file ./test/unit.hcl unit
 
 lint:
