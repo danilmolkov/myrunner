@@ -33,16 +33,16 @@ class ExecutionLogger:
         self.middle = ''
         self.end = ''
         if mode in ['full', 'full-no-command']:
-            self.start = f'{self.Colors.TERRACOTTA}┌─ {self.Colors.ENDC}'
-            self.line = f'{self.Colors.TERRACOTTA}│ {self.Colors.ENDC}'
-            self.middle = f'{self.Colors.TERRACOTTA}├─ {self.Colors.ENDC}'
-            self.end = f'{self.Colors.TERRACOTTA}└─ {self.Colors.ENDC}'
+            self.start = f'{self.Colors.OKGREEN}┌─ {self.Colors.ENDC}'
+            self.line = f'{self.Colors.OKGREEN}│ {self.Colors.ENDC}'
+            self.middle = f'{self.Colors.OKGREEN}├─ {self.Colors.ENDC}'
+            self.end = f'{self.Colors.OKGREEN}└─ {self.Colors.ENDC}'
 
     def set_output_fd(self, fd):
         self.__output_fd = fd
 
     def print_runname(self, string: str):
-        print(f'{self.middle if self.mode == "full" else self.start}Executing: {self.Colors.TERRACOTTA}{string}{self.Colors.OKCYAN}')
+        print(f'{self.middle if self.mode == "full" else self.start}Executing: {self.Colors.OKGREEN}{string}{self.Colors.OKCYAN}')
 
     def print_command(self, text: str):
         if self.mode != 'full':
