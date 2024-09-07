@@ -38,16 +38,6 @@ build-package:
       - dist/myrunner-*-py3-none-any.whl
     expire_in: "7 days"
 
-push-docker-stable:
-  image: $CI_REGISTRY/group/project/docker:20.10.16
-  services:
-    - name: $CI_REGISTRY/group/project/docker:20.10.16-dind
-      alias: docker
-  stage: build
-  script:
-    - docker build -t my-docker-image .
-    - docker run my-docker-image /script/to/run/tests
-
 upload-to-registry:
   stage: push
   image: python:3.10
