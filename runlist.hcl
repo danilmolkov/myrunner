@@ -5,9 +5,6 @@ settings {
 }
 
 locals {
-    bird = "awebo"
-    number = "one"
-    cat = "meow"
     myrunner_version = "$(python3 -c 'from myrunner._version import __version__; print(__version__)')"
 }
 
@@ -53,10 +50,16 @@ run "install" {
     cwd = "."
 }
 
-run "docker" {
+run "docker-build-stable" {
     description = "build docker image"
     command = "VERSION=${local.myrunner_version} && docker build  -f ./test/Dockerfile . --build-arg VERSION=$${VERSION} --tag registry.gitlab.com/danilmolkov/myrunner:stable"
 }
+
+run "docker-push-stable" {
+    description = "push stable"
+    command = "docker push registry.gitlab.com/danilmolkov/myrunner:stable"
+}
+
 
 run "copy_from_local_to_bin" {
     description = "copy myrunner executable to /usr/bin"
@@ -76,7 +79,4 @@ run "all" {
         build,
         install
     ]
-}
-run "awebo" {
-    command = ["echo ':<(${local.bird})'", "echo ':<(${local.bird})'"]
 }

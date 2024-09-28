@@ -1,10 +1,10 @@
 import os.path
-import logging
 
+from typing import Optional
 import pygohcl
-from jsonschema import validate, exceptions
+from jsonschema import exceptions
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, model_validator
 
 import myrunner.common.runnerExceptions as runnerExceptions
 
@@ -75,49 +75,28 @@ class HclReader:
         interactive: bool | None
         description: str | None
 
-    __settings_schema = {
-        "type": "object",
-        "properties": {
-            "interactive": {"type": "boolean"},
-            "description": {"type": "string"}
-        },
-        "additionalProperties": False
-    }
+        class Config:
+            extra = 'forbid'
 
-    __locals_schema = {
-        "type": "object",
-        # "properties": {
-        #     "interactive": {"type": "boolean"},
-        #     "description": {"type": "string"}
-        # },
-        "additionalProperties": "true"
-    }
+    class Run(BaseModel):
+        class EnvItem(BaseModel):
+            name: str
+            default: Optional[str] = None
 
-    __run_schema = {
-        "type": "object",
-        "properties": {
-            "description": {"type": "string"},
-            "sequence": {"type": "array"},
-            "command": {"type": ["string", "array"]},
-            "cwd": {"type": ["null", "string"]},
-            "executable": {"type": "string"},
-            "ignore_retcode": {"type": "boolean"},
-            "envs": {
-                "type": ["null", "array"],
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "default": {
-                        "type": "string"
-                    },
-                },
-                "required": ["name"],
-                "additionalProperties": False
-            }
-        },
-        "additionalProperties": False
-    }
+            class Config:
+                extra = 'forbid'  # Disable additional properties
+
+        description: Optional[str] = None
+        sequence: Optional[list] = None
+        command: Optional[str | list] = None
+        executable: Optional[str] = None
+        envs: Optional[list[EnvItem]] = None
+
+        @model_validator(mode='after')
+        def check_at_least_one(cls, values):
+            if not values.sequence and not values.command:
+                raise ValueError('At least one of "sequence" or "command" must be provided.')
+            return values
 
     def getsettings(self) -> dict:
         """get settings block and its content
@@ -129,8 +108,7 @@ class HclReader:
         try:
             self.Settings(**self.obj.get('settings'))
         except ValidationError as err:
-            print(err.errors())
-            raise runnerExceptions.SchemaValiationErrorPedantic('settings', err.errors())
+            raise runnerExceptions.SchemaValiationErrorPedantic('settings', err.errors(), self.__filepath)
         return self.obj['settings']
 
     def getruns(self) -> dict:
@@ -139,11 +117,10 @@ class HclReader:
                 raise runnerExceptions.SchemaValiationError(key,
                                                             f'{self.__filepath}: \'.\' '
                                                             'in run name is not allowed')
-            if '-' in key:
-                logging.warning('%s: using \'-\' in run name is not adviced : %s',
-                                self.__filepath, key)
             try:
-                validate(value, self.__run_schema)
+                self.Run(**value)
+            except ValidationError as err:
+                raise runnerExceptions.SchemaValiationErrorPedantic(f'{key} run', err.errors(), self.__filepath)
             except exceptions.ValidationError as err:
                 raise runnerExceptions.SchemaValiationError(key, err.message)
             if value.get('cwd') is not None:
@@ -153,6 +130,7 @@ class HclReader:
                     value['cwd'] = self.__paths['hcl']
             else:
                 value['cwd'] = None
+
         return self.obj['run']
 
     def getimports(self) -> dict:

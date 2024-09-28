@@ -114,7 +114,7 @@ class FileReadingTesting(unittest.TestCase):
                           self.__getruns)
 
     def testInvalidRunnerReading(self):
-        self.assertRaises(runnerExceptions.SchemaValiationError, self.__getruns, path='./test/runners/invalid-rule-runner.hcl')
+        self.assertRaises(runnerExceptions.SchemaValiationErrorPedantic, self.__getruns, path='./test/runners/invalid-rule-runner.hcl')
 
     def testSuccessImportReading(self):
         try:

@@ -6,6 +6,7 @@ from queue import Empty, Queue
 from threading import Thread
 import time
 from .execution_logger import ExecutionLogger
+
 # TODO: Move everyting under class
 class ExecutionEngine:
     el = ExecutionLogger('disable')
@@ -105,7 +106,7 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
         collector.start()
         collect_logs_from_subprocess(proc, output_queue, collector)
         end_time = time.time()
-        el.print_time(f'{int(end_time - start)} seconds')
+        el.print_time(f'finished, {int(end_time - start)} seconds')
         if (rc := proc.returncode) != 0:
             if ignore_rc:
                 logging.info('Completed with non-zero return code. [%d]', rc)
