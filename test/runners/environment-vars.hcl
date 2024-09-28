@@ -22,6 +22,6 @@ run "print_envs_if_not_stated" {
 
 run "print_no_any_envs_except_system" {
     description = "echo no any vars except system"
-    command = "printenv | grep -v PWD | grep -v /usr/bin/printenv | grep -v SHLVL; echo # omit return code"
+    command = "printenv | grep -v PATH | grep -v PWD | grep -v /usr/bin/printenv | grep -v SHLVL; echo # omit return code"
     envs = []
 }

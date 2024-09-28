@@ -24,6 +24,8 @@ class ExecutionEngine:
         if envs is None:
             return os.environ
         result = {}
+        # add PATH by default
+        result['PATH'] = os.environ.get('PATH')
         for env in envs:
             if env_value := os.environ.get(env['name']):
                 result[env['name']] = env_value

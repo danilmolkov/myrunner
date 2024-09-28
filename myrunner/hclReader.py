@@ -72,8 +72,8 @@ class HclReader:
         return new_text, token_names
 
     class Settings(BaseModel):
-        interactive: bool | None
-        description: str | None
+        interactive: bool | None = None
+        description: str | None = None
 
         class Config:
             extra = 'forbid'
