@@ -75,8 +75,6 @@ class HclReader:
             for key, value in item.items():
                 if '.' in key:
                     raise runnerExceptions.SchemaValiationError(key, '\'.\' in run name is not allowed')
-                if '-' in key:
-                    logging.warn(f"using '-' in run name is not adviced : {key}")
                 try:
                     validate(value, self.__run_schema)
                     result[key] = value
