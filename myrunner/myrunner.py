@@ -124,13 +124,13 @@ def main():
     iscomplete()
     try:
         loggingSetup()
-        rc = start()
+        start()
         logging.info('Finishing myrunner')
-        return rc
+        return 0
     except runnerExceptions.BaseMyRunnerException as err:
         err.pretty_output()
         logging.info('Finishing myrunner')
-        return 1
+        return err.return_code
 
 def start():  # noqa: C901
     args = arg_parser.parse()
@@ -163,9 +163,7 @@ def start():  # noqa: C901
         logging.debug('interactive')
     imports = hclReader.getimports()
     for run in args.runs:
-        if (rc := commandRun(runs, run, imports)) != 0:
-            logging.error('Execution failed')
-            return rc
+        commandRun(runs, run, imports)
     return 0
 
 def loggingSetup():

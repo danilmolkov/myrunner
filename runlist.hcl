@@ -5,9 +5,6 @@ settings {
 }
 
 locals {
-    bird = "awebo"
-    number = "one"
-    cat = "meow"
     myrunner_version = "$(python3 -c 'from myrunner._version import __version__; print(__version__)')"
 }
 
@@ -82,7 +79,4 @@ run "all" {
         build,
         install
     ]
-}
-run "awebo" {
-    command = ["echo ':<(${local.bird})'", "echo ':<(${local.bird})'"]
 }
