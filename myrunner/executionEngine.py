@@ -20,6 +20,13 @@ class ExecutionEngine:
             output.put(line)
 
     @staticmethod
+    def collect_err(proc, output: Queue):
+        def append_before_last(original_string, to_append):
+            return original_string[:-1] + to_append + original_string[-1]
+        for line in iter(proc.readline, ''):
+            output.put("\033[91m" + append_before_last(line, "\033[0m"))
+
+    @staticmethod
     def provideEnvs(envs):
         if envs is None:
             return os.environ
@@ -49,7 +56,7 @@ def signal_handler(sig, _):
     logging.warning("Signal received: %d (%s)", sig, signal.Signals(sig).name)
     ExecutionEngine.signal = sig
 
-def collect_logs_from_subprocess(proc, output_queue, collector) -> None:
+def collect_logs_from_subprocess(proc, output_queue, collector, collector_err) -> None:
     output = []
     while True:
         if proc.poll() is None:
@@ -64,6 +71,7 @@ def collect_logs_from_subprocess(proc, output_queue, collector) -> None:
         else:
             # proc finished
             collector.join()
+            collector_err.join()
             while True:
                 try:
                     output.append(output_queue.get(timeout=0.001))
@@ -95,7 +103,7 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
 
     el.print_runname(run_name)
     with subprocess.Popen(args=command_string,
-                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           shell=True, universal_newlines=True,
                           executable='/bin/bash' if executable == '' else executable,
                           cwd=cwd, pass_fds=(),
@@ -104,11 +112,15 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
         collector = Thread(target=ExecutionEngine.collect,
                            args=(proc.stdout, output_queue),
                            name='collector', daemon=True)
+        collector_err = Thread(target=ExecutionEngine.collect_err,
+                               args=(proc.stderr, output_queue),
+                               name='collector-err', daemon=True)
         start = time.time()
         collector.start()
-        collect_logs_from_subprocess(proc, output_queue, collector)
+        collector_err.start()
+        collect_logs_from_subprocess(proc, output_queue, collector, collector_err)
         end_time = time.time()
-        el.print_time(f'finished, {int(end_time - start)} seconds')
+        el.print_time(f'Finished, {int(end_time - start)} seconds')
         if (rc := proc.returncode) != 0:
             if ignore_rc:
                 logging.info('Completed with non-zero return code. [%d]', rc)

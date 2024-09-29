@@ -80,3 +80,8 @@ run "all" {
         install
     ]
 }
+
+
+run "test-stderr" {
+    command = "./script.sh"
+}

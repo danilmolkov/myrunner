@@ -22,5 +22,6 @@ trap handle_ctrlc SIGTERM
 while true
 do
     >&2 echo "stderr"
-    sleep 5
+    echo "stdout"
+    sleep 2
 done

@@ -55,6 +55,7 @@ class SchemaValiationError(BaseMyRunnerException):
         self.parameter = parameter
         self.message = f"{parameter}: {message}"
         self.final = ''
+        self.return_code = 2
         super().__init__()
 
 
