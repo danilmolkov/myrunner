@@ -5,7 +5,7 @@ class BaseMyRunnerException(ABC, Exception):
 
     def __init__(self) -> None:
         self.head = ''
-        self.tail = ''
+        self.tail = 'Aborting'
 
     def pretty_output(self):
         print('\033[91m┌─ Error', self.head)
@@ -14,7 +14,7 @@ class BaseMyRunnerException(ABC, Exception):
         else:
             for line in self.message:
                 print('│', line)
-        print('└─', self.final, '\033[0m', self.tail)
+        print('└─', self.final, self.tail, '\033[0m')
 
 
 class FileNotFound(BaseMyRunnerException):
@@ -22,6 +22,7 @@ class FileNotFound(BaseMyRunnerException):
 
     def __init__(self, filename='File'):
         super().__init__()
+
         self.filename = filename
         self.return_code = 1
         self.final = ''
@@ -51,30 +52,32 @@ class SchemaValiationError(BaseMyRunnerException):
     """Raised when some parameter is not valid"""
 
     def __init__(self, parameter, message="Resource not found"):
+        super().__init__()
 
         self.parameter = parameter
         self.message = f"{parameter}: {message}"
         self.final = ''
         self.return_code = 2
-        super().__init__()
 
 
 class OperationFailedError(BaseMyRunnerException):
     """Raised when an operation fails"""
 
     def __init__(self, operation, reason="Operation failed"):
+        super().__init__(self.message)
+
         self.operation = operation
         self.reason = reason
         self.message = f"{operation}: {reason}"
-        super().__init__(self.message)
 
 
 class ExecutionAbort(BaseMyRunnerException):
     """Raised when an operation fails"""
 
     def __init__(self, execution, return_code: int):
+        super().__init__(self.message)
+
         self.execution = execution
         self.return_code = return_code
         self.final = ''
         self.message = f"Execution failed! [{return_code}]"
-        super().__init__(self.message)
