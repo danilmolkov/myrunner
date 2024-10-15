@@ -74,13 +74,13 @@ run "all" {
     sequence = [
         clear,
         unit.unit,
+        unit.unit_docker,
         lint,
         lint_md,
         build,
         install
     ]
 }
-
 
 run "test-stderr" {
     command = "./script.sh"
