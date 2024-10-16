@@ -37,6 +37,7 @@ class ExecutionEngine:
             print(self.client.containers.run(image=image, command=command).decode())
 
         def run(self, image: str, command: str):
+            self.client.images.pull(image)
             try:
                 self.__current_container = self.client.containers.run(image,
                                                                       command,
@@ -75,10 +76,7 @@ class ExecutionEngine:
 
             stdout_thread.join()
             stderr_thread.join()
-            # stdout_reader_thread.join()
-            # stderr_reader_thread.join()
             self.__current_container.remove()
-            # collect_logs_from_subprocess(proc, output_queue, collector, collector_err)
             return self.__returned['StatusCode']
 
         def stream_stdout(self, write_fd):
@@ -235,6 +233,7 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
     if docker_params != {}:
         logging.debug('Starting docker')
         docker = ExecutionEngine.DockerInteracrtion()
+
         docker.run(image=docker_params['image'], command=command_string)
         rc = docker.stream_logs()
     else:

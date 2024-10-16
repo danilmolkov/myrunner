@@ -34,7 +34,7 @@ class DockerExecutionTesting(MyrunnerTestCase):
         run = """
 run "first-docker-test" {
     docker {
-        image = "alpine"
+        image = "alpine:latest"
     }
     command = "echo 'Hello from docker!'"
     ignore_retcode = true

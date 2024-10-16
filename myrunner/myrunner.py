@@ -99,6 +99,8 @@ def getversion() -> None:
     print(f'Myrunner version {ver}')
 
 def iscomplete():
+    """get runs for completion script"""
+
     if len(argv) > 1 and argv[1] == '--complete':
         try:
             runs = HclReader(argv[2]).getruns().keys()
@@ -108,11 +110,14 @@ def iscomplete():
         exit(0)
 
 def printCompletionScript():
+    """prints bash script for completion"""
     script_dir = ph.dirname(ph.abspath(__file__))
     with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r', encoding='utf-8') as f:
         print(f.read())
 
 def parse_logging_settings(args):
+    """ handles logging setings"""
+
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
     if args.quite_all:

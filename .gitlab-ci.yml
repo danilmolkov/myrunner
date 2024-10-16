@@ -11,6 +11,11 @@ unit-test:
     - python -m pip install -r  requirements.txt
     - myrunner --file ./test/unit.hcl unit
 
+unit-test-docker:
+  stage: test
+  script: myrunner -f ./test/unit.hcl unit_docker
+  tags: [docker]
+
 lint:
   stage: linting
   image: registry.gitlab.com/danilmolkov/myrunner:stable
