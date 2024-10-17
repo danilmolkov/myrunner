@@ -42,7 +42,7 @@ def handleImported(run: str, imports):
     return commandRun(imports[path[0]], path[1], None)
 
 
-def commandRun(runs: dict, run: str, imports):
+def commandRun(runs: dict, run: str, imports) -> int:
     """Perform run execution
 
     Args:
@@ -75,7 +75,7 @@ def commandRun(runs: dict, run: str, imports):
     if isinstance(runs[run]['command'], str):
         return executionEngine.command(run, runs[run]['command'], runs[run].get('envs', None),
                                        runs[run].get('executable', ''), cwd=runs[run]['cwd'],
-                                       ignore_rc=runs[run].get('ignore_retcode', False))
+                                       ignore_rc=runs[run].get('ignore_retcode', False), docker_params=runs[run].get('docker', {}))
     rc = 0
     current = 1
     for command in runs[run]['command']:
@@ -99,6 +99,8 @@ def getversion() -> None:
     print(f'Myrunner version {ver}')
 
 def iscomplete():
+    """get runs for completion script"""
+
     if len(argv) > 1 and argv[1] == '--complete':
         try:
             runs = HclReader(argv[2]).getruns().keys()
@@ -108,11 +110,14 @@ def iscomplete():
         exit(0)
 
 def printCompletionScript():
+    """prints bash script for completion"""
     script_dir = ph.dirname(ph.abspath(__file__))
     with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r', encoding='utf-8') as f:
         print(f.read())
 
 def parse_logging_settings(args):
+    """ handles logging setings"""
+
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
     if args.quite_all:
@@ -141,19 +146,15 @@ def start():  # noqa: C901
         getversion()
         return 0
     logging.info('Starting myrunner')
-    # if args.docker:
-    #     docker = DockerInteraction(args.docker)
-    #     hclReader = HclReader((docker.get_runlist_from_container()))
-    #     docker.command(hclReader.getruns()['send_request']['command'], {})
     if args.user_runlist:
         if (home := ph.expanduser('~')) is None:
             logging.error("Failed to get home path")
             return 1
         args.file = home + '/.' + args.file
-    hclReader = HclReader(args.file)
+    hcl = HclReader(args.file)
     parse_logging_settings(args)
-    runs = hclReader.getruns()
-    settings = hclReader.getsettings()
+    runs = hcl.getruns()
+    settings = hcl.getsettings()
     if args.describe:
         printRunListDescribe(args.file, settings.get('description', ''))
         printRunsTable(runs, args.runs)
@@ -161,9 +162,12 @@ def start():  # noqa: C901
     if args.interactive or settings.get('interactive', False):
         executionEngine.ExecutionEngine.interactiveInput = True
         logging.debug('interactive')
-    imports = hclReader.getimports()
+    imports = hcl.getimports()
     for run in args.runs:
-        commandRun(runs, run, imports)
+        rc = commandRun(runs, run, imports)
+        if rc != 0:
+            raise runnerExceptions.ExecutionAbort('', rc)
+
     return 0
 
 def loggingSetup():

@@ -23,9 +23,12 @@ class HclReader:
             with open(data, 'r', encoding='utf-8') as file:
                 # hcl syntax check
                 file_data = file.read()
-                self.obj = pygohcl.loads(file_data)
-                text, _ = self.__tokenize(file_data)
-                self.obj = pygohcl.loads(text)
+                try:
+                    self.obj = pygohcl.loads(file_data)
+                    text, _ = self.__tokenize(file_data)
+                    self.obj = pygohcl.loads(text)
+                except pygohcl.HCLParseError as e:
+                    raise runnerExceptions.PyHclError(e.args[0])
 
         # define paths
         self.__paths = {}
@@ -79,6 +82,12 @@ class HclReader:
             extra = 'forbid'
 
     class Run(BaseModel):
+        class Docker(BaseModel):
+            image: str
+
+            class Config:
+                extra = 'forbid'
+
         class EnvItem(BaseModel):
             name: str
             default: Optional[str] = None
@@ -91,6 +100,7 @@ class HclReader:
         command: Optional[str | list] = None
         executable: Optional[str] = None
         envs: Optional[list[EnvItem]] = None
+        docker: Docker | None = None
 
         @model_validator(mode='after')
         def check_at_least_one(cls, values):
