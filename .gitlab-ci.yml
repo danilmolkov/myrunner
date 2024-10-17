@@ -10,18 +10,20 @@ unit-test:
   script:
     - python -m pip install -r build_requirements.txt
     - myrunner --file ./test/unit.hcl unit
+  tags: [myrunner]
 
 unit-test-docker:
   stage: test
   script:
     - python -m pip install -r build_requirements.txt
     - myrunner -f ./test/unit.hcl unit_docker
-  tags: [docker]
+  tags: [myrunner, docker]
 
 lint:
   stage: linting
   script:
     - myrunner install_lint_tools lint
+  tags: [myrunner]
 
 markdownlint:
   stage: linting
