@@ -21,7 +21,7 @@ class ExecutionEngine:
 
     signal = None
 
-    class DockerInteracrtion:
+    class DockerInteraction:
         def __init__(self):
             try:
                 self.client = docker.from_env()
@@ -128,8 +128,6 @@ class ExecutionEngine:
                         continue
                     log_subprocess(output[-1])
                 else:
-                    # proc finished
-                    print('proc finished')
                     collector.join()
                     collector_err.join()
                     while True:
@@ -210,7 +208,6 @@ def collect_logs_from_subprocess(proc, output_queue, collector, collector_err) -
                     break
                 log_subprocess(output[-1])
             break
-    sys.stdout.flush()
 
 def log_subprocess(log: str):
     # import textwrap
@@ -234,7 +231,7 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
     start = time.time()
     if docker_params != {}:
         logging.debug('Starting docker')
-        docker = ExecutionEngine.DockerInteracrtion()
+        docker = ExecutionEngine.DockerInteraction()
 
         docker.run(image=docker_params['image'], command=command_string)
         rc = docker.stream_logs()
@@ -264,7 +261,9 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
             logging.debug('Completed with non-zero return code. [%d]', rc)
             return 0
         el.print_time(f'Failed, {int(end_time - start)} seconds')
+        sys.stdout.flush()
         return rc
     el.print_time(f'Finished, {int(end_time - start)} seconds')
+    sys.stdout.flush()
     logging.debug('Command finished')
     return rc
