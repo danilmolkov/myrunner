@@ -8,7 +8,7 @@ class BaseMyRunnerException(ABC, Exception):
         self.tail = 'Aborting'
 
     def pretty_output(self):
-        print('\033[91m┌─ Error', self.head)
+        print('\033[91m┌─ Error:', self.head)
         if type(self.message) is str:
             print('│', self.message)
         else:
@@ -75,9 +75,32 @@ class ExecutionAbort(BaseMyRunnerException):
     """Raised when an operation fails"""
 
     def __init__(self, execution, return_code: int):
-        super().__init__(self.message)
-
+        super().__init__()
         self.execution = execution
-        self.return_code = return_code
+        self.return_code = int(return_code)
         self.final = ''
         self.message = f"Execution failed! [{return_code}]"
+
+class PyHclError(BaseMyRunnerException):
+    """Convert exception from pygohcl"""
+
+    def __init__(self, args):
+        super().__init__()
+        args = args[13:]
+        self.message = ['invalid HCL:']
+        self.message.extend(args.split('., '))
+        self.head = 'test'
+        self.final = ''
+        self.return_code = 2
+
+
+class DockerError(BaseMyRunnerException):
+    """ Some error in docker"""
+
+    def __init__(self, message):
+        super().__init__()
+        self.head = 'Docker interaction'
+        self.message = ['Can\'t connect to Docker daemon']
+        self.message.append(message)
+        self.final = ''
+        self.return_code = 3

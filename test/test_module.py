@@ -5,21 +5,7 @@ import myrunner.myrunner as mr
 from myrunner.executionEngine import ExecutionEngine
 from myrunner.hclReader import HclReader
 import myrunner.common.runnerExceptions as runnerExceptions
-
-class TestMyRunner:
-    def __init__(self, runlist_name: str | None, data=None) -> None:
-        if data is not None and runlist_name is None:
-            self.hcl = HclReader(data)
-        else:
-            self.runners_path = f'{os.path.dirname(__file__)}/runners'
-            self.hcl = HclReader(f'{self.runners_path}/{runlist_name}')
-        self.runs = self.hcl.getruns()
-        self.setting = self.hcl.getsettings()
-        self.imports = self.hcl.getimports()
-
-    def command(self, runToRun: str) -> int:
-        return mr.commandRun(self.runs, runToRun, self.imports)
-
+from .test_common import TestMyRunner
 
 class MyrunnerTestCase(unittest.TestCase):
     def _command(self, runner, run):

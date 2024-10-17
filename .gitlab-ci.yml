@@ -8,8 +8,15 @@ unit-test:
   stage: test
   image: registry.gitlab.com/danilmolkov/myrunner:stable
   script:
-    - python -m pip install -r  requirements.txt
+    - python -m pip install -r build_requirements.txt
     - myrunner --file ./test/unit.hcl unit
+
+unit-test-docker:
+  stage: test
+  script: 
+    - python -m pip install -r build_requirements.txt
+    - myrunner -f ./test/unit.hcl unit_docker
+  tags: [docker]
 
 lint:
   stage: linting
