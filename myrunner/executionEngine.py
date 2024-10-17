@@ -3,6 +3,7 @@ import os
 import time
 import logging
 import signal
+import sys
 from queue import Empty, Queue
 from threading import Thread
 import docker
@@ -209,6 +210,7 @@ def collect_logs_from_subprocess(proc, output_queue, collector, collector_err) -
                     break
                 log_subprocess(output[-1])
             break
+    sys.stdout.flush()
 
 def log_subprocess(log: str):
     # import textwrap
