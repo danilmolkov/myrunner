@@ -1,5 +1,7 @@
 # exceptions.py
 from abc import ABC
+from myrunner.common.logger import logger
+
 class BaseMyRunnerException(ABC, Exception):
     """Base class for other exceptions"""
 
@@ -8,13 +10,14 @@ class BaseMyRunnerException(ABC, Exception):
         self.tail = 'Aborting'
 
     def pretty_output(self):
-        print('\033[91m┌─ Error:', self.head)
+        output = '┌─ Error:' + self.head + '\n'
         if type(self.message) is str:
-            print('│', self.message)
+            output += '│' + self.message + '\n'
         else:
             for line in self.message:
-                print('│', line)
-        print('└─', self.final, self.tail, '\033[0m')
+                output += '│' + line + '\n'
+        output += '└─' + f'{self.final}{self.tail}'
+        logger.print_error(output)
 
 
 class FileNotFound(BaseMyRunnerException):

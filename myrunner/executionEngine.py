@@ -11,6 +11,7 @@ import docker
 import docker.errors
 import myrunner.common.runnerExceptions as runnerExceptions
 from .execution_logger import ExecutionLogger
+from myrunner.common.logger import logger
 
 test_signal = None
 
@@ -113,7 +114,7 @@ class ExecutionEngine:
                 while self.__returned is None:
                     log_line = log_pipe.readline()
                     if log_line:
-                        output_queue.put("\033[91m" + append_before_last(log_line, "\033[0m"))
+                        output_queue.put(logger.insert_color(logger.Colors.FAIL) + append_before_last(log_line, logger.insert_color(logger.Colors.ENDC)))
 
         def collect_logs(self, output_queue, collector, collector_err) -> None:
             # global test_signal
@@ -121,7 +122,6 @@ class ExecutionEngine:
             while True:
                 if self.__returned is None:
                     if test_signal != 0:
-                        print('calling')
                         self.kill(ExecutionEngine.signal)
                         ExecutionEngine.signal = None
                     try:
@@ -130,8 +130,6 @@ class ExecutionEngine:
                         continue
                     log_subprocess(output[-1])
                 else:
-                    # proc finished
-                    print('proc finished')
                     collector.join()
                     collector_err.join()
                     while True:
@@ -155,7 +153,7 @@ class ExecutionEngine:
         def append_before_last(original_string, to_append):
             return original_string[:-1] + to_append + original_string[-1]
         for line in iter(proc.readline, ''):
-            output.put("\033[91m" + append_before_last(line, "\033[0m"))
+            output.put(logger.insert_color(logger.Colors.FAIL) + append_before_last(line, logger.insert_color(logger.Colors.ENDC)))
 
     @staticmethod
     def provideEnvs(envs):
@@ -178,10 +176,7 @@ class ExecutionEngine:
         return 1
 
 def disableOutput():
-    ExecutionEngine.el.set_output_fd(open(os.devnull, 'w', encoding='utf-8'))
-
-def set_logging(mode: str):
-    ExecutionEngine.el.set(mode)
+    logger.set_output_fd(open(os.devnull, 'w', encoding='utf-8'))
 
 def signal_handler(sig, _):
     global test_signal
@@ -202,7 +197,6 @@ def collect_logs_from_subprocess(proc, output_queue, collector, collector_err) -
                 continue
             log_subprocess(output[-1])
         else:
-            # proc finished
             collector.join()
             collector_err.join()
             while True:
@@ -217,7 +211,7 @@ def collect_logs_from_subprocess(proc, output_queue, collector, collector_err) -
 def log_subprocess(log: str):
     # import textwrap
     for line in log.splitlines(keepends=False):
-        ExecutionEngine.el.print_output(line)
+        logger.print_output(line)
 
 def command(run_name: str, command_string: str, envs, executable: str, cwd: str | None, ignore_rc: bool, docker_params={}) -> int:
     """Run simple task
@@ -231,7 +225,7 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    el.print_runname(run_name)
+    logger.print_runname(run_name)
     rc = None
     start = time.time()
     if docker_params != {}:
@@ -264,8 +258,8 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
         if ignore_rc:
             logging.debug('Completed with non-zero return code. [%d]', rc)
             return 0
-        el.print_time(f'Failed, {int(end_time - start)} seconds')
+        logger.print_end(f'Failed, {int(end_time - start)} seconds')
         return rc
-    el.print_time(f'Finished, {int(end_time - start)} seconds')
+    logger.print_end(f'Finished, {int(end_time - start)} seconds')
     logging.debug('Command finished')
     return rc
