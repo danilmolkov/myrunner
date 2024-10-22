@@ -85,4 +85,3 @@ run "all" {
 run "test-stderr" {
     command = "./script.sh"
 }
-

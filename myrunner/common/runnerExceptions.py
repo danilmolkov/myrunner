@@ -54,10 +54,11 @@ class SchemaValiationErrorPedantic(BaseMyRunnerException):
 class SchemaValiationError(BaseMyRunnerException):
     """Raised when some parameter is not valid"""
 
-    def __init__(self, parameter, message="Resource not found"):
+    def __init__(self, parameter, message: str, filename="test-hcl.tmp"):
         super().__init__()
 
         self.parameter = parameter
+        self.head = filename
         self.message = f"{parameter}: {message}"
         self.final = ''
         self.return_code = 2
