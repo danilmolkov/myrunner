@@ -129,6 +129,8 @@ class HclReader:
                                                             'in run name is not allowed')
             try:
                 self.Run(**value)
+            except TypeError:
+                raise runnerExceptions.SchemaValiationError(f'{key} run', 'all runs should be unique', self.__filepath)
             except ValidationError as err:
                 raise runnerExceptions.SchemaValiationErrorPedantic(f'{key} run', err.errors(), self.__filepath)
             except exceptions.ValidationError as err:

@@ -37,6 +37,8 @@ def parse():
     logging.add_argument('--pretty', dest='pretty',
                          choices=el.allowed_modes, default='full-no-command',
                          help='enable pretty logging')
+    logging.add_argument('-nc', '--no-color', dest='no_color', action='store_true',
+                         help='Disable colored output')
 
     other = parser.add_argument_group('other')
     other.add_argument('--completion', dest='completion', action='store_true',
