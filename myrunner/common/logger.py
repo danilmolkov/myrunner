@@ -33,6 +33,7 @@ class Logger(object):
     __error_fmt = ''
     __output_fmt = '{0}'
     __end_fmt = ''
+    __stderr_fmt = ''
 
     def update_formats(self, no_colors: bool):
         self.__no_colors = no_colors
@@ -41,11 +42,13 @@ class Logger(object):
             self.__error_fmt = '{0}'
             self.__output_fmt = '│ {0}'
             self.__end_fmt = '└─ {0}'
+            self.__stderr_fmt = '{0}\n'
         else:
             self.__error_fmt = '\033[91m{0}\033[0m'
             self.__runname_fmt = '\033[92m┌─\033[0m \033[92m{0}\033[0m: executing'
             self.__output_fmt = '\033[92m│ \033[0m{0}'
             self.__end_fmt = '\033[92m└─\033[0m {0}'
+            self.__stderr_fmt = '\033[91m{0}\033[0m\n'
 
     class Colors(enumerate):
         HEADER = '\033[95m'
@@ -77,6 +80,9 @@ class Logger(object):
 
     def print_output(self, output: str):
         print(self.__output_fmt.format(output), file=self.__output_fd)
+
+    def get_stderr(self, stderr: str):
+        return self.__stderr_fmt.format(stderr[:-1])
 
     def print_end(self, end: str):
         print(self.__end_fmt.format(end))

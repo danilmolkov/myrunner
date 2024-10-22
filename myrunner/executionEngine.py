@@ -150,10 +150,8 @@ class ExecutionEngine:
 
     @staticmethod
     def collect_err(proc, output: Queue):
-        def append_before_last(original_string, to_append):
-            return original_string[:-1] + to_append + original_string[-1]
         for line in iter(proc.readline, ''):
-            output.put(logger.insert_color(logger.Colors.FAIL) + append_before_last(line, logger.insert_color(logger.Colors.ENDC)))
+            output.put(logger.get_stderr(line))
 
     @staticmethod
     def provideEnvs(envs):
