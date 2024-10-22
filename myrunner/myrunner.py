@@ -10,6 +10,7 @@ from . import arg_parser
 from .hclReader import HclReader
 from . import executionEngine
 import myrunner.common.runnerExceptions as runnerExceptions
+from myrunner.common.logger import logger
 
 def printRunListDescribe(file: str, desc: str):
     output = basename(file)
@@ -118,12 +119,11 @@ def printCompletionScript():
 def parse_logging_settings(args):
     """ handles logging setings"""
 
+    logger.update_formats(args.no_color)
     if args.quite or args.quite_all:
         logging.disable(logging.CRITICAL)
     if args.quite_all:
         executionEngine.disableOutput()
-    if args.pretty:
-        executionEngine.set_logging(args.pretty)
 
 def main():
     iscomplete()

@@ -13,7 +13,7 @@ unit-test:
 
 unit-test-docker:
   stage: test
-  script: 
+  script:
     - python -m pip install -r build_requirements.txt
     - myrunner -f ./test/unit.hcl unit_docker
   tags: [docker]
@@ -51,6 +51,15 @@ upload-to-registry:
   script:
     - pip install twine
     - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+  only:
+    - tags
+  except:
+    - branches
+
+push-stable-docker:
+  stage: push
+  script:
+    - myrunner docker-build-stable docker-push-stable
   only:
     - tags
   except:

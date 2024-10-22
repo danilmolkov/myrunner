@@ -5,6 +5,7 @@ import myrunner.myrunner as mr
 from myrunner.executionEngine import ExecutionEngine
 from myrunner.hclReader import HclReader
 import myrunner.common.runnerExceptions as runnerExceptions
+from myrunner.common.logger import logger
 from .test_common import TestMyRunner
 
 class MyrunnerTestCase(unittest.TestCase):
@@ -15,20 +16,20 @@ class MyrunnerTestCase(unittest.TestCase):
         self.assertNotEqual(runner.command(run), 0, 'return code is successfull')
 
     def _clearBuffer(self):
-        ExecutionEngine.el.get_fd().truncate(0)
-        ExecutionEngine.el.get_fd().seek(0)
+        logger.get_fd().truncate(0)
+        logger.get_fd().seek(0)
 
     def _getResult(self):
-        return ExecutionEngine.el.get_fd().getvalue().rstrip('\n')
+        return logger.get_fd().getvalue().rstrip('\n')
 
 class ExecutionTesting(MyrunnerTestCase):
 
     def setUp(self) -> None:
-        ExecutionEngine.el.set_output_fd(StringIO(''))
+        logger.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def tearDown(self):
-        ExecutionEngine.el.get_fd().close()
+        logger.get_fd().close()
 
     def testFirstRun(self):
         firstRunner = TestMyRunner('test-runner.hcl')
@@ -114,11 +115,11 @@ class FileReadingTesting(unittest.TestCase):
 
 class SequenceTesting(MyrunnerTestCase):
     def setUp(self) -> None:
-        ExecutionEngine.el.set_output_fd(StringIO(''))
+        logger.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def tearDown(self):
-        ExecutionEngine.el.get_fd().close()
+        logger.get_fd().close()
 
     def testSequence(self):
         runner = TestMyRunner('sequence.hcl')
@@ -148,7 +149,7 @@ class SequenceTesting(MyrunnerTestCase):
 
 class IgnoreRetCodeTesting(MyrunnerTestCase):
     def setUp(self) -> None:
-        ExecutionEngine.el.set_output_fd(StringIO(''))
+        logger.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def testRunExecution(self):
@@ -186,7 +187,7 @@ run "seq_rc" {
 
 class LocalsSubstitution(MyrunnerTestCase):
     def setUp(self) -> None:
-        ExecutionEngine.el.set_output_fd(StringIO(''))
+        logger.set_output_fd(StringIO(''))
         mr.loggingSetup()
 
     def testRunSuccefulSubs(self):
