@@ -204,7 +204,6 @@ def collect_logs_from_subprocess(proc, output_queue, collector, collector_err) -
                     break
                 log_subprocess(output[-1])
             break
-    sys.stdout.flush()
 
 def log_subprocess(log: str):
     # import textwrap
@@ -255,9 +254,12 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
     if rc != 0:
         if ignore_rc:
             logging.debug('Completed with non-zero return code. [%d]', rc)
+            sys.stdout.flush()
             return 0
         logger.print_end(f'Failed, {int(end_time - start)} seconds')
+        sys.stdout.flush()
         return rc
     logger.print_end(f'Finished, {int(end_time - start)} seconds')
+    sys.stdout.flush()
     logging.debug('Command finished')
     return rc
