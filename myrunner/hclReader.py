@@ -10,6 +10,11 @@ import myrunner.common.runnerExceptions as runnerExceptions
 
 class HclReader:
     def __init__(self, data: str | bytes) -> None:
+        # define paths
+        self.__paths = {}
+        self.__paths['hcl'] = os.path.dirname(os.path.abspath(data))
+        self.__paths['cwd'] = os.getcwd()
+
         if isinstance(data, bytes):
             self.__filepath = ''
             self.obj = pygohcl.loadb(data)
@@ -30,11 +35,6 @@ class HclReader:
                 except pygohcl.HCLParseError as e:
                     raise runnerExceptions.PyHclError(e.args[0])
 
-        # define paths
-        self.__paths = {}
-        self.__paths['hcl'] = os.path.dirname(os.path.abspath(data))
-        self.__paths['cwd'] = os.getcwd()
-
         # importing runlists
         self.obj['__imported'] = {}
         if 'import' in self.obj:
@@ -43,12 +43,19 @@ class HclReader:
 
     def __validate_tokenname(self, token_name: str) -> str:
         if '.' not in token_name:
-            raise runnerExceptions.SchemaValiationError('test', f'{token_name} is unknown')
+            raise runnerExceptions.SchemaValiationError('test', f'{token_name} is unknown',
+                                                        self.__filepath)
 
         token_path = token_name.split('.', 1)
         # temporary check only local
-        if token_path[0] != 'local':
-            raise runnerExceptions.SchemaValiationError('test', f'{token_path[0]} is unknown')
+        if token_path[0] not in ['local', 'define']:
+            raise runnerExceptions.SchemaValiationError('test', f'{token_path[0]} is unknown', self.__filepath)
+        if token_path[0] == 'define':
+            define_name = token_path[1]
+            if define_name == 'script_path':
+                return self.__paths['hcl']
+            else:
+                raise runnerExceptions.SchemaValiationError('test', f'{token_path[1]} is not found')
         replacements = self.obj.get('locals', {})
         try:
             return str(replacements[token_path[1]])
@@ -84,6 +91,7 @@ class HclReader:
     class Run(BaseModel):
         class Docker(BaseModel):
             image: str
+            mount: dict[str, str] | None = None
 
             class Config:
                 extra = 'forbid'
@@ -118,7 +126,8 @@ class HclReader:
         try:
             self.Settings(**self.obj.get('settings'))
         except ValidationError as err:
-            raise runnerExceptions.SchemaValiationErrorPedantic('settings', err.errors(), self.__filepath)
+            raise runnerExceptions.SchemaValiationErrorPedantic('settings', err.errors(),
+                                                                self.__filepath)
         return self.obj['settings']
 
     def getruns(self) -> dict:
@@ -130,9 +139,11 @@ class HclReader:
             try:
                 self.Run(**value)
             except TypeError:
-                raise runnerExceptions.SchemaValiationError(f'{key} run', 'all runs should be unique', self.__filepath)
+                raise runnerExceptions.SchemaValiationError(f'{key} run', 'all runs should be unique',
+                                                            self.__filepath)
             except ValidationError as err:
-                raise runnerExceptions.SchemaValiationErrorPedantic(f'{key} run', err.errors(), self.__filepath)
+                raise runnerExceptions.SchemaValiationErrorPedantic(f'{key} run', err.errors(),
+                                                                    self.__filepath)
             except exceptions.ValidationError as err:
                 raise runnerExceptions.SchemaValiationError(key, err.message)
             if value.get('cwd') is not None:

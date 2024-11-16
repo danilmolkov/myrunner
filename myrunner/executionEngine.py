@@ -23,6 +23,8 @@ class ExecutionEngine:
     signal = None
 
     class DockerInteracrtion:
+        __docker_initiated = False
+
         def __init__(self):
             try:
                 self.client = docker.from_env()
@@ -30,18 +32,27 @@ class ExecutionEngine:
                 raise runnerExceptions.DockerError(e.args[0])
 
             self.api = docker.APIClient()
+            self.__docker_initiated = True
 
         def __del__(self):
-            self.api.close()
-            self.client.close()
+            if self.__docker_initiated:
+                self.api.close()
+                self.client.close()
 
         def run_container(self, image: str, command: str):
             print(self.client.containers.run(image=image, command=command).decode())
 
-        def run(self, image: str, command: str):
+        def __convert_volumes(self, volumes: dict[str, str]):
+            result = {}
+            for key, value in volumes.items():
+                result[key] = {'bind': value, 'mode': 'rw'}
+            return result
+
+        def run(self, image: str, command: str, mount):
             try:
                 self.__current_container = self.client.containers.run(image,
                                                                       command,
+                                                                      volumes=self.__convert_volumes(mount),
                                                                       detach=True,
                                                                       stdout=True,
                                                                       stderr=True,
@@ -228,7 +239,7 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
     if docker_params != {}:
         logging.debug('Starting docker')
         docker = ExecutionEngine.DockerInteracrtion()
-        docker.run(image=docker_params['image'], command=command_string)
+        docker.run(image=docker_params['image'], command=command_string, mount=docker_params.get('mount', {}))
         rc = docker.stream_logs()
     else:
         with subprocess.Popen(args=command_string,

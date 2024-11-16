@@ -76,7 +76,8 @@ def commandRun(runs: dict, run: str, imports) -> int:
     if isinstance(runs[run]['command'], str):
         return executionEngine.command(run, runs[run]['command'], runs[run].get('envs', None),
                                        runs[run].get('executable', ''), cwd=runs[run]['cwd'],
-                                       ignore_rc=runs[run].get('ignore_retcode', False), docker_params=runs[run].get('docker', {}))
+                                       ignore_rc=runs[run].get('ignore_retcode', False),
+                                       docker_params=runs[run].get('docker', {}))
     rc = 0
     current = 1
     for command in runs[run]['command']:
@@ -151,8 +152,8 @@ def start():  # noqa: C901
             logging.error("Failed to get home path")
             return 1
         args.file = home + '/.' + args.file
-    hcl = HclReader(args.file)
     parse_logging_settings(args)
+    hcl = HclReader(args.file)
     runs = hcl.getruns()
     settings = hcl.getsettings()
     if args.describe:
@@ -164,8 +165,7 @@ def start():  # noqa: C901
         logging.debug('interactive')
     imports = hcl.getimports()
     for run in args.runs:
-        rc = commandRun(runs, run, imports)
-        if rc != 0:
+        if (rc := commandRun(runs, run, imports)) != 0:
             raise runnerExceptions.ExecutionAbort('', rc)
 
     return 0
