@@ -44,10 +44,10 @@ class Logger(object):
             self.__end_fmt = '└─ {0}'
             self.__stderr_fmt = '{0}\n'
         else:
-            self.__error_fmt = '\033[91m{0}\033[0m'
-            self.__runname_fmt = '\033[92m┌─\033[0m \033[92m{0}\033[0m: executing'
-            self.__output_fmt = '\033[92m│ \033[0m{0}'
-            self.__end_fmt = '\033[92m└─\033[0m {0}'
+            self.__error_fmt = '\033[1;92m{0}\033[0m'
+            self.__runname_fmt = '\033[1;92m┌─\033[0m \033[92m{0}\033[0m: executing'
+            self.__output_fmt = '\033[1;92m│ \033[0m{0}'
+            self.__end_fmt = '\033[1;92m└─\033[0m {0}'
             self.__stderr_fmt = '\033[91m{0}\033[0m\n'
 
     class Colors(enumerate):
