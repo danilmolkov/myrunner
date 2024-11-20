@@ -57,6 +57,7 @@ def commandRun(runs: dict, run: str, imports) -> int:
     Raises:
         runnerExceptions.SchemaValiationError if run is not found
     """
+
     if run not in runs:
         raise runnerExceptions.SchemaValiationError(run, 'run is not found')
     logging.debug("Starting run: %s", run)
@@ -92,8 +93,8 @@ def commandRun(runs: dict, run: str, imports) -> int:
     return rc
 
 def getversion() -> None:
-    """get version of myrunner
-    """
+    """get version of myrunner"""
+
     try:
         from ._version import version as ver
     except ModuleNotFoundError:
@@ -113,6 +114,7 @@ def iscomplete():
 
 def printCompletionScript():
     """prints bash script for completion"""
+
     script_dir = ph.dirname(ph.abspath(__file__))
     with open(f'{script_dir}/autocomplete/autocomplete.sh', 'r', encoding='utf-8') as f:
         print(f.read())
@@ -173,7 +175,7 @@ def start():  # noqa: C901
 def loggingSetup():
     # note: critical is not used
     logging.getLogger('myrunner')
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 

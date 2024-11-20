@@ -22,7 +22,7 @@ class ExecutionEngine:
 
     signal = None
 
-    class DockerInteracrtion:
+    class DockerInteraction:
         __docker_initiated = False
 
         def __init__(self):
@@ -56,7 +56,8 @@ class ExecutionEngine:
                                                                       detach=True,
                                                                       stdout=True,
                                                                       stderr=True,
-                                                                      remove=False)
+                                                                      remove=False,
+                                                                      platform=os.uname().machine)
             except docker.errors.DockerException as e:
                 raise runnerExceptions.DockerError(str(e))
 
@@ -238,10 +239,11 @@ def command(run_name: str, command_string: str, envs, executable: str, cwd: str 
     start = time.time()
     if docker_params != {}:
         logging.debug('Starting docker')
-        docker = ExecutionEngine.DockerInteracrtion()
+        docker = ExecutionEngine.DockerInteraction()
         docker.run(image=docker_params['image'], command=command_string, mount=docker_params.get('mount', {}))
         rc = docker.stream_logs()
     else:
+        logging.debug('Parameters: args=%s, cwd=%s', command_string, cwd)
         with subprocess.Popen(args=command_string,
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                               shell=True, universal_newlines=True,

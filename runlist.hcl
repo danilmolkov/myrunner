@@ -34,8 +34,14 @@ run "lint" {
 
 run "lint_md" {
     description = "lint README using markdown lint docker"
-    command = "docker run --rm -v $${PWD}:/lint pipelinecomponents/markdownlint mdl /lint --style all --warnings"
-    cwd = "."
+    docker {
+        image = "pipelinecomponents/markdownlint"
+        mount = {
+            "${define.script_path}": "/lint"
+        }
+    }
+    command = "mdl /lint --style all --warnings"
+    cwd = "${define.script_path}"
 }
 
 run "build" {
