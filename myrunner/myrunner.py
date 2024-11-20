@@ -175,7 +175,7 @@ def start():  # noqa: C901
 def loggingSetup():
     # note: critical is not used
     logging.getLogger('myrunner')
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
 

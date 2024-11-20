@@ -41,7 +41,6 @@ run "lint_md" {
         }
     }
     command = "mdl /lint --style all --warnings"
-    cwd = "${define.script_path}"
 }
 
 run "build" {
